@@ -12,7 +12,7 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.1;
 
-__PACKAGE__->mk_accessors( qw( messages threader input output ) );
+__PACKAGE__->mk_accessors( qw( messages threader input output threads_per_page ) );
 
 sub new {
     my $class = shift;
@@ -76,10 +76,10 @@ sub generate {
 
     my $page = 0;
     my @threads = $self->threader->rootset;
-    my $pages = int(scalar(@threads)/$self->{threads_per_page});
+    my $pages = int(scalar(@threads)/$self->threads_per_page);
     while (scalar(@threads)) {
         warn "Index page ".($page+1)."\n";
-        my @page = splice(@threads, 0, $self->{threads_per_page});
+        my @page = splice(@threads, 0, $self->threads_per_page);
         $tt->process('index.tt2',
                      { threads => \@page,
                        page => $page,
