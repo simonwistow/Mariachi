@@ -145,6 +145,8 @@ sub generate {
                 $sub->($c->next)  if $c->next;
             };
             $sub->($root);
+            undef $sub; # since we closed over ourself, we'll have to
+                        # be specific
         }
 
         $tt->process('index.tt2',
@@ -196,6 +198,7 @@ sub generate {
               or die $tt->error;
         };
         $root->recurse_down( $sub );
+        undef $sub;
     }
 }
 
