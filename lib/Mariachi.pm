@@ -373,12 +373,10 @@ sub generate_pages {
                      { @_,
                        again      => sub { @_ and $again = shift; $again },
                        file       => sub { @_ and $file  = shift; $file } },
-                     $self->output . "/$spool" )
+                     $self->output . "/$$.tmp" )
           or die $tt->error;
-        if ($file ne $spool) { # the template asked this output to be renamed
-            print "$spool -> $file\n";
-            rename $self->output . "/$spool", $self->output . "/$file";
-        }
+        print "$$.tmp -> $file\n";
+        rename $self->output . "/$$.tmp", $self->output . "/$file";
     } while $again;
 }
 
