@@ -199,18 +199,6 @@ sub sanity {
     die "Didn't see ".(scalar keys %mails)." messages";
 }
 
-# okay, so we want to walk the containers in the following order,
-# so that Message->next and Message->prev are easy to find
-#
-# -- 1
-#    |-- 2
-#    |-- 3
-#    |   \-- 4
-#    |-- 5
-#    \-- 6
-# -- 7
-# I hate ascii art
-
 =head2 $mariachi->strand
 
 wander over $mariachi->threader setting the Message ->next and ->prev
@@ -249,8 +237,7 @@ sub strand {
         # the top one needs to be empty, because we're cheating.
         # to keep references straight, we'll move its content
         my $top = $_->topmost;
-        my $root = $top->message->root
-          or die "trying to handle something we didn't iterate over!!!".$top->message->header('message-id');
+        my $root = $top->message->root or die "batshit!";
         if ($root->message) {
             my $new = Mail::Thread::Container->new($root->messageid);
             $root->messageid('dummy');
