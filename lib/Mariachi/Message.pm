@@ -24,9 +24,9 @@ sub _filename {
     my @date = localtime $self->epoch_date;
     my @ymd = ($date[5]+1900, $date[4]+1, $date[3]);
     my $path = sprintf("%04d/%02d/%02d/", @ymd);
-    my $year  = $self->year(           sprintf  "%04d", $ymd[0] );
-    my $month = $self->month( $year  . sprintf "/%02d", $ymd[1] );
-    my $day   = $self->day(   $month . sprintf "/%02d", $ymd[2] );
+    $self->year(  sprintf "%04d", @ymd );
+    $self->month( sprintf "%04d/%02d", @ymd );
+    $self->day(   sprintf "%04d/%02d/%02d", @ymd );
     $self->ymd(\@ymd);
     return $path.$filename;
 }
