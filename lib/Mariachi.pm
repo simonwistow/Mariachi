@@ -92,7 +92,7 @@ sub load {
     $| = 1;
     my $cache;
     $cache = $self->config->input.".cache" if $ENV{M_CACHE};
-    if ($cache && -e $cache && !$self->config->force) {
+    if ($cache && -e $cache && !$self->config->refresh) {
         print "pulling in $cache\n";
         $self->messages( retrieve( $cache ) );
         return;
@@ -464,7 +464,7 @@ sub generate_date {
             if (my $mail = $c->message) {
                 # mark the thread dirty, if the message is new
                 unless (-e $self->config->output."/".$mail->filename &&
-                        !$self->config->force) {
+                        !$self->config->refresh) {
                     # dirty up the date indexes
                     $touched_dates{ $mail->year } = 1;
                     $touched_dates{ $mail->month } = 1;
@@ -514,7 +514,7 @@ sub generate_bodies {
                 # mark the thread dirty, if the message is new
                 $touched_threads{ $root } = $root
                   unless -e $self->config->output."/".$mail->filename
-                    && !$self->config->force;
+                    && !$self->config->refresh;
             }
         };
         $root->iterate_down($sub);

@@ -34,7 +34,7 @@ I<~/.mariachi>.
 
 An example config file might look like
 
-    force
+    refresh
     input  = ~/mail
     output = ~/public_html/mymail/
 
@@ -103,14 +103,16 @@ $config->define("templates", {
     ARGCOUNT => ARGCOUNT_LIST
    });
 
-=head2 -f --force
+=head2 -r --refresh
 
-Force is probably not a good name
+Refreshes individual message pages and other indexes even if mariachi
+believes this is not necessary. This is usually only needed if you change
+the templates (typically to update the style of a page).
 
 =cut
 
-$config->define("force", {
-    ALIAS    => 'f',
+$config->define("refresh", {
+    ALIAS    => 'r',
     DEFAULT  => 0,
     ARGCOUNT => ARGCOUNT_NONE
    });
@@ -130,14 +132,20 @@ $config->getopt;
 die "mariachi: unrecognised arguments ".join(' ', map { qq{'$_'} } @ARGV )."\n"
   if @ARGV;
 
+die <<USAGE unless (defined $config->input && defined $config->output);
+mariachi: mail archive generator
+   usage: mariachi -i input.mbox -o output_folder -n 'list name'
+          see 'perldoc mariachi' for further information and options
+USAGE
+
 die "need an input maildir"
   unless defined $config->input;
 die "where do we put them?"
   unless defined $config->output;
 
 unless (defined $config->name) {
-    warn "Should pass a list title\n";
-    $config->name("no list title");
+    warn "Should pass a list name\n";
+    $config->name("no list name");
 }
 
 Mariachi->new( config  => $config,
