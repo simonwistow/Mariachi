@@ -2,6 +2,8 @@ Build.PL
 Makefile.PL
 Changes
 MANIFEST
+SIGNATURE
+t/0-signature.t
 META.yml
 TODO
 lib/Mariachi.pm
