@@ -138,9 +138,16 @@ sub _get_context {
     my $return = "";
     my $lines  = 0;
 
-    # get all the lines of the sigless body
-    foreach (split /$/m, $self->body_sigless) {
-        last if (defined $opts{'para'} && $opts{'para'}==1 && $lines>0 && /^\s*$/);
+    # get all the lines from the main part of the body
+    my @lines = split /$/m, $self->body_sigless;
+
+    # right, find the start of the original content or quoted
+    # content (i.e. skip past the attributation)
+    my $not_started = 1;
+    while (@lines && $not_started) {
+        # next line
+        local $_ = shift @lines;
+	#print "}}$_";
 
         # blank lines, euurgh
         next if /^\s*$/;
@@ -152,7 +159,33 @@ sub _get_context {
 
         # skip signed messages
         next if /^\s*-----/;
+        next if /^Hash:/;
 
+        # annoying hi messages (this won't work with i18n)
+        next if /^\s*(?:hello|hi|hey|greetings|salut
+                        |good (?:morning|afternoon|day|evening))
+                 (?:\W.{0,14})?\s*$/ixs;
+
+	# if we got this far then we've probably got past the
+	# attibutation lines
+        unshift @lines, $_;  # undo the shift
+        undef $not_started;  # and say we've started.
+    }
+
+    # okay, let's _try_ to build up some content then
+    foreach (@lines) {
+        # are we at the end of a paragraph?
+        last if (defined $opts{'para'}  # paragraph mode?
+		 && $opts{'para'}==1
+		 && $lines>0            # got some lines aready?
+		 && /^\s*$/);           # and now we've found a gap?
+
+        # blank lines, euurgh
+        next if /^\s*$/;
+        # quotes (we don't count quoted From's)
+        next if /^\s*>(?!From)/;
+
+	# if we got this far then the line was a useful one
         $lines++;
 
         # sort of munged Froms
@@ -161,7 +194,6 @@ sub _get_context {
         $return .= "\n" if $lines>1;
         $return .= $_;
         last if (defined $opts{'lines'} && $opts{'lines'}==$lines);
-
     }
     return $return;
 }
