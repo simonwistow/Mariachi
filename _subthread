@@ -1,16 +1,16 @@
 <li>
-[% thread.message.walkedover(1) %]
 [% IF thread.message %]
-	<a href="[% thread.message.filename %]">[% thread.message.subject %]</a><br><small>[% thread.message.from %] <i>[% thread.message.date %]</i></small>
+	<a href="[% thread.message.filename %]">[% thread.message.subject %]</a><br />
+        <small>[% thread.message.from %] <i>[% thread.message.date %]</i></small>
 [% ELSE %]
 	(no message) [% thread.messageid %]
 [% END %]
 [% IF thread.child %]
 <ul>
-	[% PROCESS _subthread thread=thread.child %]
+	[% INCLUDE _subthread thread=thread.child %]
 </ul>
 [% END %]
 </li>
 [% IF thread.next %]
-	[% PROCESS _subthread thread=thread.next %]
+	[% INCLUDE _subthread thread=thread.next %]
 [% END %]
