@@ -15,8 +15,11 @@ HEAD	Unreleased
 	Distribution includes a passthrough Makefile.PL for CPAN.pm users
 
 
+
 0.2	Friday 2nd May, 2003
 	fixed distribution - now includes Siesta::Build
+
+
 
 0.1	Friday 2nd May, 2003
 	initial CPAN release
