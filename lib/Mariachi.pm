@@ -61,7 +61,7 @@ sub thread {
 
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
-    if (1) {
+    if (0) {
         my %mails = map { $_ => 1 } @{ $self->messages };
         $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } )
           for $threader->rootset;
@@ -82,7 +82,10 @@ sub generate {
         warn "Index page " . ($page + 1) . "\n";
         # @chunk is the chunk of threads on this page
         my @chunk = splice(@threads, 0, $self->threads_per_page);
-        $_->recurse_down(sub { eval { $_[0]->message->page( $page ) } })
+        $_->recurse_down(sub { eval {
+            $_[0]->message->page( $page );
+            $_[0]->message->root( $_ );
+        } })
           for @chunk;
 
         $tt->process('index.tt2',
@@ -97,7 +100,7 @@ sub generate {
 
     # tt (in) sanity test - we should have walked over everything in
     # the mbox once and only once in generating the thread index
-    if (1) {
+    if (0) {
         my @unwalked = grep { $_->walkedover != 1 } @{ $self->messages };
         my @ids = map { [ $_->header('message-id'), $_->from, $_->subject, $_->walkedover ] } @unwalked;
         die "Stange walk for ".(Dumper \@ids) . @ids . " messages"
@@ -109,7 +112,7 @@ sub generate {
     for my $mail (@{ $self->messages }) {
         warn "$count\n" if ++$count % 20 == 0;
         $tt->process('message.tt2',
-                     { thread  => $self->_find_root_thread($mail),
+                     { thread  => $mail->root,
                        message => $mail,
                        headers => [ 'Subject', 'Date' ],
                      },
@@ -140,17 +143,5 @@ sub perform {
     print "output generation took ", tv_interval( $start ), " seconds\n";
 }
 
-
-# given a message, find the root of the thread that it's in
-sub _find_root_thread {
-    my $self = shift;
-    my $mail = shift;
-    my $id   = $self->threader->_msgid($mail);
-    for my $cont ($self->threader->rootset) {
-        my $in;
-        $cont->recurse_down( sub { $_[0]->messageid eq $id and $in = 1 } );
-        return $cont if $in;
-    }
-}
 
 1;

@@ -5,7 +5,7 @@ use Class::Accessor::Fast;
 use Digest::MD5 qw(md5_base64);
 
 use base qw(Email::Simple Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from walkedover page));
+__PACKAGE__->mk_accessors(qw( filename from walkedover page root ));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
