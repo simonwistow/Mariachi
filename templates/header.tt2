@@ -1,3 +1,5 @@
+[% USE date( format = '%H:%M on %d %b %Y' ) %]
+
 <html>
 <head>
 <title>[% title | html %]</title>

@@ -4,7 +4,6 @@
 <div class="title">[% threads.0.message.header("List-Id") | html %]</div>
 [% END %]
 
-
 [% PROCESS pagenav.tt2 %]
 
 [% FOREACH root = threads %]
@@ -15,7 +14,6 @@
 
 [% PROCESS pagenav.tt2 %]
 
-[% USE date %]
 <p>Generated [% date.format %] at by mariachi</p>
 
 </body>

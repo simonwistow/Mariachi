@@ -145,7 +145,8 @@ sub generate {
             my $mail = $_[0]->message or return;
 
             $tt->process('message.tt2',
-                         { thread    => $root,
+                         { base      => '../../../',
+                           thread    => $root,
                            message   => $mail,
                            container => $_[0],
                          },
