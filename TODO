@@ -8,11 +8,6 @@ Siesta, if slightly more fully featured.  must steal
 commandline/inifile kinda thing.  I think this is probably what
 AppConfig is good for, and we're already using TT so it's worth a look
 
-=head1 Template plugin for body filtering
-
-hiding email addresses, turning urls into links, colorising attributed
-text, that kinda thing.
-
 =head1 Internals documentation
 
 as always.  needs to cover subclassing, since we kinda support it, but
