@@ -91,11 +91,11 @@ sub generate {
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
+    my $prev;
     while (@threads) {
         # @chunk is the chunk of threads on this page
         my @chunk = splice @threads, 0, $self->threads_per_page;
         my $index_file = $page ? "index_$page.html" : "index.html";
-        my $prev;
         for my $root (@chunk) {
             my $sub;
             $sub = sub {
