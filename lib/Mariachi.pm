@@ -42,11 +42,11 @@ sub sanitise_messages {
     # some message ids get munged like so: <$group/$message_id>
     for my $mail (@{ $self->messages }) {
         for (qw( references in_reply_to )) {
-            my $hdr = $mail->$_() or next;
+            my $hdr = $mail->header($_) or next;
             my $before = $hdr;
             $hdr =~ s{<[^>]*?/}{<}g or next;
             #print "$_ $before$_: $hdr";
-            $mail->$_($hdr);
+            $mail->header_set($_, $hdr);
         }
     }
 }
@@ -55,7 +55,6 @@ sub thread {
     my $self = shift;
 
     $Mail::Thread::nosubject = 1;
-
     my $threader = Email::Thread->new( @{ $self->messages } );
     $self->threader($threader);
     $threader->thread;
@@ -207,14 +206,14 @@ sub perform {
     my $start = [gettimeofday];
 
     $self->load_messages;
-    #$self->sanitise_messages;
+    $self->sanitise_messages;
 
     print "messages loaded in ",
       tv_interval( $start )," seconds\n";
     $start = [gettimeofday];
 
     $self->thread;
-    #$self->order;
+    $self->order;
     #$self->thread_check;
 
     print "and threaded in ", tv_interval( $start ), " seconds\n";
