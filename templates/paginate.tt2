@@ -6,4 +6,4 @@
    ELSE ; 
 	set_again(nextpage) ; 
    END %]
-[% set_file( nthpage( thispage ) ) %]
+[% set_file( mariachi.nthpage( thispage, spool ) ) %]

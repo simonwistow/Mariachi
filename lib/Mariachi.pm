@@ -375,6 +375,16 @@ sub init_tt {
 
 =cut
 
+sub nthpage {
+    my $self = shift;
+    my $n    = shift;
+    my $page = shift;
+    return $page if $n == 1;
+    --$n;
+    $page =~ s/\./_$n./;
+    return $page;
+}
+
 sub generate_pages {
     my $self = shift;
     my $template = shift;
@@ -387,17 +397,10 @@ sub generate_pages {
             $template,
             { @_,
               mariachi  => $self,
+              spool     => $spool,
               # callbacktastic
               again     => sub { $again },
               file      => sub { $file  },
-              nthpage   => sub {
-                  my $n    = shift;
-                  my $page = $spool;
-                  return $page if $n == 1;
-                  --$n;
-                  $page =~ s/\./_$n./;
-                  return $page;
-              },
               set_again => sub { $again = shift; return },
               set_file  => sub { $file  = shift; return }, },
             $self->config->output . "/$$.tmp" )
@@ -430,7 +433,7 @@ sub generate_lurker {
 }
 
 
-=head2 ->generate_thread_index
+=head2 ->generate_thread
 
 =cut
 
