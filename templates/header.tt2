@@ -2,7 +2,7 @@
 
 <html>
 <head>
-<title>[% title | html %]</title>
+<title>[% title | html | mariachi %]</title>
 <style type="text/css"><!--
 [% INCLUDE css.tt2 %]  
 --></style>
