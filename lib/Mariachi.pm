@@ -14,7 +14,7 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.31;
 
-__PACKAGE__->mk_accessors( qw( input output messages rootset
+__PACKAGE__->mk_accessors( qw( input output force messages rootset
                                threads_per_page list_title
                                start_time last_time tt ) );
 
@@ -103,7 +103,7 @@ sub load {
     $| = 1;
     my $cache;
     $cache = $self->input.".cache" if $ENV{M_CACHE};
-    if ($cache && -e $cache) {
+    if ($cache && -e $cache && !$self->force()) {
         print "pulling in $cache\n";
         $self->messages( retrieve( $cache ) );
         return;
@@ -455,7 +455,7 @@ sub generate_date {
 
             if (my $mail = $c->message) {
                 # mark the thread dirty, if the message is new
-                unless (-e $self->output."/".$mail->filename) {
+                unless (-e $self->output."/".$mail->filename && !$self->force()) {
                     # dirty up the date indexes
                     $touched_dates{ $mail->year } = 1;
                     $touched_dates{ $mail->month } = 1;
@@ -506,7 +506,7 @@ sub generate_bodies {
             if (my $mail = $c->message) {
                 # mark the thread dirty, if the message is new
                 $touched_threads{ $root } = $root
-                  unless -e $self->output."/".$mail->filename;
+                  unless -e $self->output."/".$mail->filename && !$self->force();
             }
         };
         $root->iterate_down($sub);

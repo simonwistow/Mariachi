@@ -8,6 +8,7 @@ my $build = Siesta::Build->new(
     license      => 'perl',
     script_files => [ 'mariachi' ],
     requires     => {
+		'AppConfig'       => 0,
         'Email::Folder'   => '0.5',
         'Module::Build'   => '0.18',
         'Mail::Thread'    => '2.2',

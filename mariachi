@@ -1,19 +1,56 @@
 #!/usr/local/bin/perl -w
 use strict;
 use Mariachi;
+use AppConfig qw(:argcount);
 
-my $input = shift || die "need an input maildir";
-my $output = shift || die "where do we put them?";
-my $list_title = shift;
-unless ($list_title) {
-    $list_title = "no list title";
-    warn "Should pass a list title\n";
+
+my $config = AppConfig->new();
+
+
+$config->define("force", {
+        ALIAS    => 'f',
+        DEFAULT  => 0,
+        ARGCOUNT => ARGCOUNT_NONE,
+    });
+
+$config->define("input", {
+        ALIAS    => 'i',
+        ARGCOUNT => ARGCOUNT_ONE,
+    });
+
+$config->define("output", {
+        ALIAS    => 'o',
+        ARGCOUNT => ARGCOUNT_NONE,
+    });
+
+
+$config->define("title", {
+        ALIAS    => 't',
+        ARGCOUNT => ARGCOUNT_ONE,
+    });
+
+
+$config->getopt();
+
+print $config->title(),"\n";
+
+die "need an input maildir" 
+                    unless defined $config->input();
+die "where do we put them?" 
+                    unless defined $config->output();
+
+unless (defined $config->title()) {
+    warn "Should pass a list title\n"; 
+    $config->title("no list title");
 }
 
-Mariachi->new( input  => $input,
-               output => $output,
+
+
+Mariachi->new( input  => $config->input,
+               output => $config->output,
+               force  => $config->force,
                threads_per_page => 20,
-               list_title => $list_title,
+               list_title => $config->title,
               )
   ->perform;
 
