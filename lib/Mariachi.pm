@@ -4,7 +4,9 @@ use Class::Accessor::Fast;
 use Email::Thread;
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
-use Data::Dumper;
+use Data::Dumper qw( Dumper );
+use Storable qw( store retrieve );
+
 use base 'Class::Accessor::Fast';
 
 use vars '$VERSION';
@@ -41,13 +43,27 @@ sub load {
       or die "Unable to open ".$self->input;
 
     $| = 1;
+    my $cache;
+    $cache = $self->input.".cache" if $ENV{M_CACHE};
+    if ($cache && -e $cache) {
+        print "pulling in $cache\n";
+        $self->messages( retrieve( $cache ) );
+        return;
+    }
+
     my $count = 0;
     my @msgs;
     while (my $msg = $folder->next_message) {
         push @msgs, $msg;
-        print "\r$count messages" if ++$count % 100 == 0;
+        print STDERR "\r$count messages" if ++$count % 100 == 0;
     }
-    print "\n";
+    print STDERR "\n";
+
+    if ($cache) {
+        print "caching\n";
+        store( \@msgs, $cache );
+    }
+
     $self->messages( \@msgs );
 }
 
@@ -112,7 +128,7 @@ sub sanity {
     my $check = sub {
         my $mail = $_[0]->message or return;
         ++$count;
-        print "\rverify $count";
+        print STDERR "\rverify $count";
         delete $mails{ $mail || '' };
     };
     $_->iterate_down( $check ) for $self->threader->rootset;
@@ -245,9 +261,9 @@ sub generate {
                      $self->output . "/$index_file" )
           or die $tt->error;
         $page++;
-        print "\rindex $page";
+        print STDERR "\rindex $page";
     }
-    print "\n";
+    print STDERR "\n";
     $self->_bench("thread indexes");
 
     for ( keys %touched_dates ) {
