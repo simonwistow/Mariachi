@@ -4,8 +4,8 @@ use Mariachi;
 use AppConfig qw(:argcount);
 
 
+# define the command line options
 my $config = AppConfig->new();
-
 
 $config->define("force", {
         ALIAS    => 'f',
@@ -30,11 +30,15 @@ $config->define("title", {
     });
 
 
+# define the system and the user config files
+my $sys  = "/usr/local/mariachi/mariachi.conf";
+my $user = "$ENV{HOME}/.mariachi";
 
+# and read them in if they exist
+$config->file($sys)  if (-e $sys  && -f $sys);
+$config->file($user) if (-e $user && -f $user);
 
-my $conf = _get_conf_file();
-print "Using $conf config file\n";
-$config->file($conf) if defined $conf;
+# then read in the command line options
 $config->getopt();
 
 
@@ -59,16 +63,6 @@ Mariachi->new( input  => $config->input,
   ->perform;
 
 
-sub _get_conf_file {
-
-    my $sys  = "/usr/local/mariachi/mariachi.conf";
-    my $user = "$ENV{HOME}/.mariachi";
-
-    return $user if (-e $user && -f $user);
-    return $sys  if (-e $sys  && -f $sys);
-    return undef;
-    
-}
 __END__
 
 =head1 NAME
