@@ -92,7 +92,7 @@ Any values will be added to the head of that list.
 =cut
 
 $config->define("templates", {
-    DEFAULT  => [ qw( /usr/local/mariachi/templates templates ) ],
+    DEFAULT  => [ '/usr/local/mariachi/templates', 'templates' ],
     ARGCOUNT => ARGCOUNT_LIST,
 });
 

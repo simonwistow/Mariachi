@@ -6,7 +6,9 @@ use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper qw( Dumper );
 use Storable qw( store retrieve );
-use File::Path;
+use File::Path qw( mkpath );
+use File::Copy qw( copy move );
+use File::Find::Rule;
 use File::Basename;
 
 use base 'Class::Accessor::Fast';
@@ -28,7 +30,7 @@ Mariachi - all dancing mail archive generator
 =head2 ->config
 
 An L<AppConfig> object containing the current configuration.  See
-L<mariachi> for details.
+L<mariachi> for details of the configurable items.
 
 =head2 ->messages
 
@@ -330,8 +332,26 @@ copy files into the output dir
 
 =cut
 
-sub copy_files {
 
+sub copy_files {
+    my $self = shift;
+
+    for my $dir (@{ $self->config->templates }) {
+        my @files = map {
+            s{$dir/?}{}; $_
+        } find( or => [ find( directory =>
+                              name      => [ qw( CVS .svn ) ],
+                              prune     =>
+                              discard   => ),
+                        find( file => '!name' => [ '*.tt2', '*~', '*.bak' ] )
+                       ],
+                in => $dir );
+        for (@files) {
+            mkpath dirname $self->config->output . "/$_";
+            copy( "$dir/$_", $self->config->output . "/$_" )
+              or die "couldn't copy $dir/$_ $!";
+        }
+    }
 }
 
 
@@ -385,7 +405,7 @@ sub generate_pages {
 
         print STDERR "\r$$.tmp -> $file";
         mkpath dirname $self->config->output . "/$file";
-        rename $self->config->output . "/$$.tmp", $self->config->output . "/$file"
+        move $self->config->output . "/$$.tmp", $self->config->output . "/$file"
           or die "$!";
     } while $again;
     print STDERR "\n";
@@ -490,9 +510,7 @@ sub generate_bodies {
     for my $root (@{ $self->rootset }) {
         my $sub;
         $sub = sub {
-            my $c = shift or return;
-
-            if (my $mail = $c->message) {
+            if (my $mail = eval { $_[0]->message }) {
                 # mark the thread dirty, if the message is new
                 $touched_threads{ $root } = $root
                   unless -e $self->config->output."/".$mail->filename
