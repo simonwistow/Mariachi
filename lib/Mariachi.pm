@@ -108,8 +108,16 @@ sub thread_check {
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
     my %mails = map { $_ => 1 } @{ $self->messages };
-    $_->iterate_down( sub { delete $mails{ $_[0]->message || '' } } )
-      for $self->threader->rootset;
+    my $count;
+    my $check = sub {
+        my $mail = $_[0]->message or return;
+        ++$count;
+        print "\rverify $count";
+        delete $mails{ $mail || '' };
+    };
+    $_->iterate_down( $check ) for $self->threader->rootset;
+    print "\n";
+    undef $check;
 
     return unless %mails;
     my $sub = sub {
@@ -303,20 +311,17 @@ sub perform {
     $self->thread_check;
     $self->_bench("sanity");
 
-
     $self->order;
     $self->_bench("order");
 
     $self->thread_check;
     $self->_bench("sanity");
 
-
     $self->strand;
     $self->_bench("strand");
 
     $self->thread_check;
     $self->_bench("sanity");
-
 
     $self->generate;
     $self->_bench("generate");
