@@ -24,6 +24,13 @@
     list-style-image: none;
     list-style-type: none;
   }
+  tr.row1 { 
+	background-color:#dddddd; 
+  }  /* even rows in mindex/thread/search tables */
+  tr.row2 { 
+	background-color:#eeeeee; 
+  }  /* odd rows in mindex/thread/search tables  */
+
   
 --></style>
 </head>

@@ -374,8 +374,8 @@ sub time_thread {
                     $col = $parent_col + 1;
                     for my $r (@cells[0..$row -1]) {
                         next if @$r < $col;
-                        my $here = $r->[$col] || '';
-                        splice(@$r, $col, 0, $here eq '+' ? '-' : '');
+                        my $here = $r->[$col] || 'a';
+                        splice(@$r, $col, 0, $here eq 'e' ? 'c' : 'a');
                     }
                 }
                 else {
@@ -385,14 +385,14 @@ sub time_thread {
                 # the path is now clear, add the line in
                 $cells[$row][$col] = $c;
                 for ($parent_col..$col) {
-                    $cells[$parent_row][$_] ||= '-';
+                    $cells[$parent_row][$_] ||= 'c';
                 }
 
-                $cells[$parent_row][$col] = '+';
+                $cells[$parent_row][$col] = 'e';
             }
             # link with vertical dashes
             for ($parent_row..$row) {
-                $cells[$_][$col] ||= '|';
+                $cells[$_][$col] ||= 'b';
             }
         }
 
@@ -409,7 +409,7 @@ sub time_thread {
                 my $this;
                 for (@$row) {
                     $this ||= $_;
-                    print ref $_ ? '*' : $_ ? $_ : ' ';
+                    print ref $_ ? 'f' : $_ ? $_ : 'a';
                 }
                 print "\t", $this->messageid, "\n";
             }

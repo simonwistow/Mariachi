@@ -3,20 +3,37 @@
 
 <h1>[% list_title %]</h1>
 
+[%     mapping = { ' ' => 'a',
+				   '|' => 'b',
+				   '-' => 'c',
+				   '\\' => 'd',
+				   '+' => 'e',
+				   '*' => 'f',
+				  }
+%]
+
+
 [% FOREACH root = threads %]
 <h2>[% root.0.0.topmost.message.subject | html%]</h2>
-<table border = "1">
+<table border = "0" cellpadding="0" cellspacing="0">
 	<tr>
 	</tr>
 	[% FOREACH row = root %]
-	<tr>
+	[% IF colour=="row1" %]
+		[% colour="row2" %]
+	[% ELSE %]
+		[% colour="row1" %]
+	[% END %]
+	<tr class="[% colour %]">
 		[% FOREACH cell = row %]
 		<td>
 			[% IF cell.message %]
-			<a href="[% cell.message.filename %]">*</a>
+			<a href="[% cell.message.filename %]">
+				<img src="images/[% mapping.$cell%].png" border="0">
+			</a>
 				[% message = cell.message %]
 			[% ELSE %]
-				[% cell %]
+				<img src="images/[% mapping.$cell %].png">
 			[% END %]</td>
 		[% END %]
 	<td>
