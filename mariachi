@@ -5,6 +5,7 @@ use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper;
 use Date::Parse qw(str2time);
 
+use Email::Thread;
 use Mariachi::Folder;
 
 my $start = [gettimeofday];
@@ -34,7 +35,7 @@ for my $mail (@mails) {
 print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
 $start = [gettimeofday];
 
-my $threader = Email::Thread::Mariachi->new( @mails );
+my $threader = Email::Thread->new( @mails );
 $threader->thread;
 
 my %date;
@@ -96,50 +97,3 @@ sub find_root_thread {
     }
 }
 
-package Email::Thread::Mariachi;
-use Email::Thread (); # Ensure the module is actually installed and loaded.
-use base 'Email::Thread';
-
-sub _container_class { "Email::Thread::Container::Mariachi" }
-
-sub order {
-    my $self = shift;
-    my $ordersub = shift;
-
-    # make a fake root
-    my $root = $self->_container_class->new( 'fakeroot' );
-    $root->child( ($self->rootset)[0] );
-    $root->set_children( $self->rootset );
-
-    use Data::Dumper;
-    # sort it
-    $root->order_children( $ordersub );
-
-    # and untangle it
-    @{$self->{rootset}} = $root->children;
-    for ($root->children) {
-        $_->parent(undef);
-        $_->next(undef);
-    }
-}
-
-package Email::Thread::Container::Mariachi;
-use base 'Email::Thread::Container';
-
-sub _order_subject {
-    sort { $a->topmost->subject cmp $b->topmost->subject } @_
-}
-
-sub order_children {
-    my $self = shift;
-    my $ordersub = shift || \&_order_subject;
-    use Data::Dumper;
-    # go depth first
-    eval { $self->child->order_children($ordersub) };
-    eval { $self->next->order_children($ordersub) };
-
-    my @children = $self->children;
-    return if @children < 2;
-
-    $self->set_children( $ordersub->( @children ) );
-}
