@@ -73,10 +73,22 @@ sub generate {
     my $self = shift;
 
     my $tt = Template->new( INCLUDE_PATH => 'templates', RECURSION => 1 );
-    $tt->process('index.tt2',
-                 { threads => [ $self->threader->rootset ] },
-                 $self->output . "/index.html") or die $tt->error;
 
+    my $page = 0;
+    my @threads = $self->threader->rootset;
+    my $pages = int(scalar(@threads)/$self->{threads_per_page});
+    while (scalar(@threads)) {
+        warn "Index page ".($page+1)."\n";
+        my @page = splice(@threads, 0, $self->{threads_per_page});
+        $tt->process('index.tt2',
+                     { threads => \@page,
+                       page => $page,
+                       pages => $pages,
+                     },
+                     $self->output . ($page ? "/index_$page.html" : "/index.html") )
+            or die $tt->error;
+        $page++;
+    }
     # tt (in) sanity test
     if (1) {
         my @unwalked = grep { $_->walkedover != 1 } @{ $self->messages };
@@ -85,6 +97,7 @@ sub generate {
           if @ids;
     }
 
+    warn "Message pages\n";
     for my $mail (@{ $self->messages }) {
         $tt->process('message.tt2',
                      { thread  => $self->_find_root_thread($mail),

@@ -1,13 +1,35 @@
 [% INCLUDE header.tt2 title="Messages" %]
 
+[% IF pages %]
+<p>
+[% IF page == 1 %]<a href="index.html">&lt; last page</a>[% END %]
+[% IF page > 1 %]<a href="index_[% page - 1 %].html">&lt; last page</a>[% END %]
+
+( Page [% page + 1 %] of [% pages + 1 %] )
+
+[% IF page < pages %]<a href="index_[% page + 1 %].html">next page &gt;</a>[% END %]
+</p>
+[% END %]
+
 [% FOREACH root = threads %]
   <div class=threads>
     [% INCLUDE thread.tt2 thread=root %]
   </div>
 [% END %]
 
+[% IF pages %]
+<p>
+[% IF page == 1 %]<a href="index.html">&lt; last page</a>[% END %]
+[% IF page > 1 %]<a href="index_[% page - 1 %].html">&lt; last page</a>[% END %]
+
+( Page [% page + 1 %] of [% pages + 1%] )
+
+[% IF page < pages %]<a href="index_[% page + 1 %].html">next page &gt;</a>[% END %]
+</p>
+[% END %]
+
 [% USE date %]
-Generated [% date.format %] at by mariachi
+<p>Generated [% date.format %] at by mariachi</p>
 
 </body>
 </html>

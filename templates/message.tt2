@@ -3,16 +3,15 @@
 <h1>[% message.subject | html %]</h1>
 
 <div class=headers>
-<i>From:</i>[% message.from %]
+<b>From:</b> [% message.from %]
 [% FOREACH hdr = headers %]
-<br><i>[% hdr %]:</i>[% message.header(hdr) | html %]
+<br><b>[% hdr %]:</b> [% message.header(hdr) | html %]
 [% END %]
 </div>
 
 <pre>[% message.body | html %]</pre>
 
 <div class=threads>
-Thread:
 [% PROCESS thread.tt2 %]
 </div>
 

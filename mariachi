@@ -4,8 +4,12 @@ use Mariachi;
 
 my $input = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
+
+my $threads_per_page = 20;
+
 my $mariachi = Mariachi->new( input  => $input,
                               output => $output,
+                              threads_per_page => $threads_per_page,
                             );
 
 $mariachi->perform;
