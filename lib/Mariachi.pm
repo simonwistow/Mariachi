@@ -393,6 +393,7 @@ sub generate_pages {
     my $again;
     do {
         my $file = $spool;
+        my $tmpfile = $self->config->output . "/$$.tmp";
         $self->tt->process(
             $template,
             { @_,
@@ -404,12 +405,13 @@ sub generate_pages {
               file      => sub { $file  },
               set_again => sub { $again = shift; return },
               set_file  => sub { $file  = shift; return }, },
-            $self->config->output . "/$$.tmp" )
+            $tmpfile )
           or die $self->tt->error;
 
-        mkpath dirname $self->config->output . "/$file";
-        move $self->config->output . "/$$.tmp", $self->config->output . "/$file"
-          or die "$!";
+        my $new = $self->config->output . "/$file";
+        mkpath dirname $new;
+        move $tmpfile, $new
+          or die "moving $tmpfile -> $new: $!";
     } while $again;
 }
 
