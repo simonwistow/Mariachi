@@ -80,13 +80,6 @@ sub filter {
     my ($self, $text, @args) = @_;
     my $config = (ref $args[-1] eq 'HASH')? pop @args : {};
 
-
-    # XXX kludge
-    if ($self->_should_do('entity', $config)) {
-        $text =~ s/</&lt;/g;
-        $text =~ s/>/&gt;/g;
-    }
-
     if ($self->_should_do('email', $config)) {
         find_emails($text, \&munge_email);
     }
