@@ -21,17 +21,17 @@ sub create_later {
         #warn $sql;
         $self->db_Main->do( $sql )
           or die "couldn't create '$table->{name}': " . $self->db_Main->errstr;
+        $table->{class}->set_up_table( $table->{name} );
     }
 
     # and now set up the tables and the has_a's
     for my $table ( @create_later ) {
-        # ??? this next line seems to segv.  badness
-        $table->{class}->set_up_table( $table->{name} );
         while ( my ($k, $v) = each %{ $table->{fields} }) {
             next unless $v;
             $table->{class}->has_a( $k => $v );
         }
     }
+    warn "later has passed";
 }
 
 # I want to have my cake, and eat it.  Maybe if I eat it *later*... :)
