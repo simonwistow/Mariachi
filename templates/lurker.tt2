@@ -45,7 +45,7 @@
         [% message.linked.lurker = file %]
         <td width="48"><img src="images/blank.png" width="48" height="24"></td>
 	<td rowspan="2"><small>[% context = mariachi.config.get('lurker-context') ; IF context %]
-		[% message.$context | html %]<br />[% END %]
+		[% message.$context | html | mariachi %]<br />[% END %]
 			<a href="[% message.filename %]">[% message.from | html %]</a> [% date.format( message.epoch_date ) %]</small></td>
         </tr>
         <tr class="[% loop.count % 2 == 0 ? "row1" : "row2" %]">
