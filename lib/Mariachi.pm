@@ -2,7 +2,6 @@ use strict;
 package Mariachi;
 use Class::Accessor::Fast;
 use Email::Thread;
-use Mariachi::Folder;
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper;
@@ -24,7 +23,7 @@ sub load_messages {
     my $folder = Mariachi::Folder->new( $self->input )
       or die "Unable to open ".$self->input;
 
-    $self->messages( [ @{ $self->messages || [] }, $folder->messages ] );
+    $self->messages( [ $folder->messages ] );
 }
 
 sub sanitise_messages {
@@ -191,7 +190,8 @@ sub perform {
     my $start = [gettimeofday];
 
     $self->load_messages;
-    $self->sanitise_messages;
+    print "\n";
+    #$self->sanitise_messages;
 
     print scalar @{ $self->messages }, " messages loaded in ",
       tv_interval( $start )," seconds\n";
@@ -207,5 +207,17 @@ sub perform {
     print "output generation took ", tv_interval( $start ), " seconds\n";
 }
 
+
+package Mariachi::Folder;
+use Mariachi::Message;
+use Email::Folder;
+use base 'Email::Folder';
+
+$| = 1;
+my $count = 0;
+sub bless_message {
+    print "\r$count messages" if ++$count % 100 == 0;
+    Mariachi::Message->new($_[1]);
+}
 
 1;
