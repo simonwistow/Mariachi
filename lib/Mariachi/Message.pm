@@ -101,9 +101,9 @@ It can optionally be passed a number of lines to get.
 
 sub first_lines {
     my $self = shift;
-	my $num  = shift || 1;
+    my $num  = shift || 1;
 
-	return $self->_get_context(lines => $num);
+    return $self->_get_context(lines => $num);
 }
 
 
@@ -114,20 +114,20 @@ Returns
 =cut
 
 sub first_para {
-	my $self = shift;
-	return $self->_get_context(para => 1);
+    my $self = shift;
+    return $self->_get_context(para => 1);
 }
 
 sub _get_context {
-	my $self = shift;
-	my %opts = @_;
+    my $self = shift;
+    my %opts = @_;
 
-	my $return = "";
-	my $lines  = 0;
+    my $return = "";
+    my $lines  = 0;
 
     # get all the lines of the sigless body
     foreach (split /$/m, $self->body_sigless) {
-		last if (defined $opts{'para'} && $opts{'para'}==1 && $lines>0 && /^\s*$/);
+        last if (defined $opts{'para'} && $opts{'para'}==1 && $lines>0 && /^\s*$/);
 
         # blank lines, euurgh
         next if /^\s*$/;
@@ -140,17 +140,17 @@ sub _get_context {
         # skip signed messages
         next if /^\s*-----/;
 
-		$lines++;
+        $lines++;
 
         # sort of munged Froms
         s/^>From/From/;
-		s/^\n+//;
-		$return .= "\n" if $lines>1;
+        s/^\n+//;
+        $return .= "\n" if $lines>1;
         $return .= $_;
-		last if (defined $opts{'lines'} && $opts{'lines'}==$lines);
+        last if (defined $opts{'lines'} && $opts{'lines'}==$lines);
 
     }
-	return $return;
+    return $return;
 }
 
 memoize('_get_context');

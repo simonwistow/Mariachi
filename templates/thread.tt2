@@ -8,7 +8,7 @@
 		[% thread.message.subject | html %]
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
 		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i><br />
-		[% thread.message.first_sentence | html%]</small>
+		[% thread.message.first_line | html%]</small>
 	[% ELSE %]
 		[% IF this ; "<b>" ; ELSE %]
 		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
