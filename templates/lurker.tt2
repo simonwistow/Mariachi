@@ -43,7 +43,7 @@
 	    [% END %]
         [% END %]
         [% message.linked.lurker = file %]
-        <td><img src="images/blank.png" width="48" height="24"></td>
+        <td width="48"><img src="images/blank.png" width="48" height="24"></td>
 	<td rowspan="2"><small>[% message.first_sentence | html %]<br />
 			<a href="[% message.filename %]">[% message.from | html %]</a> [% date.format( message.epoch_date ) %]</small></td>
         </tr>
