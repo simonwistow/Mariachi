@@ -16,6 +16,20 @@ __PACKAGE__->mk_accessors( qw( messages threader input output
                                threads_per_page list_title
                                start_time last_time ) );
 
+=head1 NAME
+
+Mariachi - all dancing mail archive generator
+
+=head1 DESCRIPTION
+
+=head1 METHODS
+
+=head2 ->new( %initial_values )
+
+your general class-method constructor
+
+=cut
+
 sub new {
     my $class = shift;
     $class->SUPER::new({@_});
@@ -35,6 +49,12 @@ sub _bench {
 
     $self->last_time($now);
 }
+
+=head2 $mariachi->load
+
+populate $mariachi->messages from $mariachi->input
+
+=cut
 
 sub load {
     my $self = shift;
@@ -67,6 +87,12 @@ sub load {
     $self->messages( \@msgs );
 }
 
+=head2 $mariachi->dedupe
+
+remove duplicates from $mariachi->messages
+
+=cut
+
 sub dedupe {
     my $self = shift;
 
@@ -83,11 +109,19 @@ sub dedupe {
     $self->messages(\@new);
 }
 
+=head2 $mariachi->sanitise
+
+some messages have been near mail2news gateways, which means that some
+message ids in the C<references> and C<in-reply-to> headers get munged
+like so: <$group/$message_id>
+
+fix this in $mariachi->messages
+
+=cut
+
 sub sanitise {
     my $self = shift;
 
-    # some messages have been near mail2news gateways, which means that
-    # some message ids get munged like so: <$group/$message_id>
     for my $mail (@{ $self->messages }) {
         for (qw( references in_reply_to )) {
             my $hdr = $mail->header($_) or next;
@@ -99,6 +133,13 @@ sub sanitise {
     }
 }
 
+=head2 $mariachi->thread
+
+populate $mariachi->threader with a Mail::Thread object created from
+$mariachi->messages
+
+=cut
+
 sub thread {
     my $self = shift;
 
@@ -106,6 +147,12 @@ sub thread {
     $self->threader($threader);
     $threader->thread;
 }
+
+=head2 $mariachi->order
+
+order $mariachi->threaders containers by date
+
+=cut
 
 sub order {
     my $self = shift;
@@ -118,11 +165,16 @@ sub order {
                         }) for $self->threader->rootset;
 }
 
+=head2 $mariachi->sanity
+
+(in)sanity test - check everything in $mariachi->messages is reachable
+by walking $mariachi->threader
+
+=cut
+
 sub sanity {
     my $self = shift;
 
-    # (in)sanity test - is everything in the original mbox in the
-    # thread tree?
     my %mails = map { $_ => 1 } @{ $self->messages };
     my $count;
     my $check = sub {
@@ -159,6 +211,13 @@ sub sanity {
 # -- 7
 # I hate ascii art
 
+=head2 $mariachi->strand
+
+wander over $mariachi->threader setting the Message ->next and ->prev
+links and reparenting subthreads that are considered too deep
+
+=cut
+
 sub strand {
     my $self = shift;
 
@@ -167,7 +226,9 @@ sub strand {
         my $sub = sub {
             my ($cont, $depth) = @_;
 
-            if ($depth && ($depth % 14 == 0) && $cont->parent->child == $cont) {
+            # only note first entries
+            if ($depth && ($depth % 14 == 0)
+                && $cont->parent->child == $cont) {
                 push @toodeep, $cont;
             }
             my $mail = $cont->message or return;
@@ -202,6 +263,12 @@ sub strand {
         $root->add_child( $_ );
     }
 }
+
+=head2 $mariachi->generate
+
+render thread tree into the directory of $mariachi->output
+
+=cut
 
 sub generate {
     my $self = shift;
@@ -310,12 +377,16 @@ sub generate {
     $self->_bench("message bodies");
 }
 
+=head2 $mariachi->perform
+
+do all the right steps
+
+=cut
 
 sub perform {
     my $self = shift;
 
-    $self->_bench("startup");
-
+    $self->_bench("reticulating splines");
     $self->load;     $self->_bench("load ".scalar @{ $self->messages });
     $self->dedupe;   $self->_bench("dedupe");
     #$self->sanitise; $self->_bench("sanitise");
