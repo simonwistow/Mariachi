@@ -1,7 +1,6 @@
 use strict;
 package Mariachi::Message;
 use Email::Simple;
-use Class::Accessor::Fast;
 use Digest::MD5 qw(md5_hex);
 use Date::Parse qw(str2time);
 use Text::Original ();

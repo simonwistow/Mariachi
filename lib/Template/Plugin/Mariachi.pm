@@ -1,17 +1,12 @@
-package Template::Plugin::Mariachi;
-
 use strict;
-use Template::Plugin::Filter;
-use base qw(Template::Plugin::Filter);
-use vars qw($FILTER_NAME);
-use Carp;
-
-$FILTER_NAME = "mariachi";
-
+package Template::Plugin::Mariachi;
 use URI::Find::Schemeless::Stricter;
 use Email::Find;
+use Carp qw(croak);
 
-=pod
+use base qw(Template::Plugin::Filter);
+
+our $FILTER_NAME = "mariachi";
 
 =head1 NAME
 

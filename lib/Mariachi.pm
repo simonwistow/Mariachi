@@ -1,20 +1,15 @@
 use strict;
 package Mariachi;
-use Class::Accessor::Fast;
 use Email::Thread;
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
-use Data::Dumper qw( Dumper );
 use Storable qw( store retrieve );
 use File::Path qw( mkpath );
 use File::Copy qw( copy move );
 use File::Find::Rule;
 use File::Basename;
-
-use base 'Class::Accessor::Fast';
-
-use vars '$VERSION';
-$VERSION = '0.51';
+use base qw( Class::Accessor::Fast );
+our $VERSION = '0.51';
 
 __PACKAGE__->mk_accessors( qw( config messages rootset
                                start_time last_time tt ) );
