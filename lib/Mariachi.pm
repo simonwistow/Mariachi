@@ -298,6 +298,8 @@ sub _draw_cells {
     print "\n";
 }
 
+use constant debug => 0;
+
 sub time_thread {
     my $self = shift;
 
@@ -378,7 +380,10 @@ sub time_thread {
                 # okay, figure out what the max col is
                 my $max_col = (max map { scalar @$_ } @cells );
                 # would drawing the simple horizontal line cross the streams?
-                if (grep { $cells[$parent_row][$_] } $parent_col+1..$max_col) {
+                if (grep { my $c = $cells[$parent_row][$_] || '';
+                           ref $c || $c eq '|' }
+                      $parent_col+1..$max_col) {
+                    print "Crossing the streams, horizontally\n" if debug;
                     # we want to end up in $parent_col + 1 and
                     # everything in that column needs to get shuffled
                     # over one
@@ -402,7 +407,7 @@ sub time_thread {
             }
             # would drawing the vertical line cross the streams?
             if (grep { $cells[$_][$col] } $parent_row+1..$row) {
-                print "Crossing the streams!\n";
+                print "Crossing the streams, | over something\n" if debug;
                 # a +
                 #   b
                 # c +
@@ -426,16 +431,16 @@ sub time_thread {
             for ($parent_row..$row) {
                 $cells[$_][$col] ||= '|';
             }
+            _draw_cells(\@cells) if debug;
         }
 
-        # pad the rows with undefs
+        # pad the rows with spaces
         my $maxcol = max map { scalar @$_ } @cells;
         for my $row (@cells) {
             $row->[$_] ||= ' ' for (0..$maxcol-1);
         }
 
         push @results, \@cells;
-        _draw_cells(\@cells) if 1;
     }
     return @results;
 }
