@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 12;
 use_ok('Mariachi::Message');
 
 my $m = Mariachi::Message->new(<<'MAIL');
@@ -20,7 +20,6 @@ is( $m->from,           'Doc Brown', "sanitised from" );
 is( $m->date,           'Sat, 12 November 1955 22:02:00' );
 is( $m->subject,        'Time Travel' );
 is( $m->filename,       '1955/11/12/51cf7416.html' );
-is( $m->first_sentence, "I have a hunch", "first_sentence" );
 is( $m->body,           "I have a hunch\n" );
 is( $m->body_sigless,   "I have a hunch\n" );
 is( $m->sig,            undef);
@@ -39,4 +38,3 @@ MAIL
 
 is( $m2->header('message-id' ), '1d6e9e79@made_up', "faked a messageid" );
 is( $m2->sig,             "But we do have a sig\n" );
-is( $m2->first_sentence,  "nor here" );

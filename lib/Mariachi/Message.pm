@@ -83,9 +83,10 @@ sub header_set {
 }
 
 
-=head2 ->first_sentence
+=head2 ->first_lines
 
-Returns the first non blank, none quoted line of the body of the email.
+Returns the a number of lines after the first non blank, none quoted
+line of the body of the email.
 
 It will guess at attribution lines and skip them as well.
 
@@ -94,13 +95,40 @@ fault, not ours.
 
 It won't catch all types of attribution lines;
 
+It can optionally be passed a number of lines to get.
+
 =cut
 
-sub first_sentence {
+sub first_lines {
     my $self = shift;
+	my $num  = shift || 1;
+
+	return $self->_get_context(lines => $num);
+}
+
+
+=head2 ->first_para 
+
+Returns 
+
+=cut
+
+sub first_para {
+	my $self = shift;
+	return $self->_get_context(para => 1);
+}
+
+sub _get_context {
+	my $self = shift;
+	my %opts = @_;
+
+	my $return = "";
+	my $lines  = 0;
 
     # get all the lines of the sigless body
     foreach (split /$/m, $self->body_sigless) {
+		last if (defined $opts{'para'} && $opts{'para'}==1 && $lines>0 && /^\s*$/);
+
         # blank lines, euurgh
         next if /^\s*$/;
         # quotes (we don't count quoted From's)
@@ -112,13 +140,20 @@ sub first_sentence {
         # skip signed messages
         next if /^\s*-----/;
 
+		$lines++;
+
         # sort of munged Froms
         s/^>From/From/;
-        s/^\n+//;
-        return $_;
+		s/^\n+//;
+		$return .= "\n" if $lines>1;
+        $return .= $_;
+		last if (defined $opts{'lines'} && $opts{'lines'}==$lines);
+
     }
+	return $return;
 }
-memoize('first_sentence');
+
+memoize('_get_context');
 
 =head2 ->body_sigless
 

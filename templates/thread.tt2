@@ -16,7 +16,7 @@
 		[% thread.message.from | html %] 
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
 		<i>[% date.format(thread.message.epoch_date) %]</i><br />
-		<small>[% thread.message.first_sentence | html %]</small>
+		<small>[% thread.message.first_lines | html %]</small>
 	
 	[% END %]
 [% ELSE %]
