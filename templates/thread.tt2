@@ -1,11 +1,11 @@
-<li class="thread">
+<li class="thread" id="m_[% thread.message.filename FILTER replace('/', '_') %]">
 [% IF thread.message %]
 	[% IF backlink ; thread.message.linked.thread = file ; END %]
 	[% this = thread.message == message %]
 	[% IF thread.message.prev.subject != thread.message.subject %]
 		[%# The previous subject line differed, so show the new one %]
 		[% IF this ; "<b>" ; ELSE %]
-		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
+		<a href="[% base %][% thread.message.filename %]">
 		[% END %]
 		[% thread.message.subject | html %]
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
@@ -14,7 +14,7 @@
 	[% ELSE %]
 		[%# The previous subject line was the same, so don't show it %]
 		[% IF this ; "<b>" ; ELSE %]
-		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
+		<a href="[% base %][% thread.message.filename %]">
 		[% END %]
 		[% thread.message.from | html %] 
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
