@@ -48,7 +48,7 @@
         [% FOREACH cell = row %]
 	    [% x = loop.count - 1 %]
 	    [% IF cell != ' ' && root.$y && root.$y.$x && root.$y.$x != ' ' && root.$y.$x != '-' %][%# something beneath %]
-               <td background="images/vertical.png"></td>
+               <td background="images/vertical.png">&nbsp;</td>
 	    [% ELSE %]
 	       <td></td>
             [% END %]
