@@ -4,13 +4,13 @@
 
 [%# set up pagination %]
 [% thispage = again || 1 ; nextpage = thispage + 1 %]
-[% USE page = Page(all_threads.size, perpage, thispage) %] 
+[% USE page = Page(threads.size, perpage, thispage) %] 
 [% IF thispage == page.last_page ; set_again(0) ; ELSE ; set_again(nextpage) ; END %]
 [% set_file( nthpage( thispage ) ) %]
 
 [% PROCESS pagenav.tt2 %]
 
-[% FOREACH root = threads %]
+[% FOREACH root = page.splice(threads) %]
 <ul class="threads">
     [% INCLUDE thread.tt2 thread=root depth=0 %]
 </ul>

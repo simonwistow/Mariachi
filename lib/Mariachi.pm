@@ -16,7 +16,7 @@ $VERSION = 0.31;
 
 __PACKAGE__->mk_accessors( qw( input output messages rootset
                                threads_per_page list_title
-                               start_time last_time ) );
+                               start_time last_time tt ) );
 
 =head1 NAME
 
@@ -363,36 +363,57 @@ sub generate_pages {
     my $template = shift;
     my $spool    = shift;
 
-    my $tt = Template->new(
-        INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
-        RECURSION => 1
-       );
-
     my $again;
     do {
         my $file = $spool;
-        $tt->process($template,
-                     { @_,
-                       again     => sub { $again },
-                       file      => sub { $file  },
-                       nthpage  => sub {
-                           my $n    = shift;
-                           my $page = $spool;
-                           return $page if $n == 1;
-                           --$n;
-                           $page =~ s/\./_$n./;
-                           return $page;
-                       },
-                       set_again => sub { $again = shift; return },
-                       set_file  => sub { $file  = shift; return }, },
-                     $self->output . "/$$.tmp" )
-          or die $tt->error;
+        $self->tt->process(
+            $template,
+            { @_,
+              again     => sub { $again },
+              file      => sub { $file  },
+              nthpage   => sub {
+                  my $n    = shift;
+                  my $page = $spool;
+                  return $page if $n == 1;
+                  --$n;
+                  $page =~ s/\./_$n./;
+                  return $page;
+              },
+              set_again => sub { $again = shift; return },
+              set_file  => sub { $file  = shift; return }, },
+            $self->output . "/$$.tmp" )
+          or die $self->tt->error;
+
         print "$$.tmp -> $file\n";
         mkpath dirname $self->output . "/$file";
         rename $self->output . "/$$.tmp", $self->output . "/$file"
           or die "$!";
-
     } while $again;
+}
+
+
+=head2 ->copy_files
+
+copy files into the output dir
+
+=cut
+
+sub copy_files {
+
+}
+
+=head2 init_tt2
+
+=cut
+
+sub init_tt {
+    my $self = shift;
+    $self->tt(
+        Template->new(
+            INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
+            RECURSION => 1
+           )
+       );
 }
 
 =head2 ->generate
@@ -404,12 +425,6 @@ render thread tree into the directory of C<output>
 # XXX this seems to have just passed the stage of being too big
 sub generate {
     my $self = shift;
-
-    my $tt = Template->new(
-        INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
-        RECURSION => 1
-       );
-
     my @threads = @{ $self->rootset };
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
@@ -451,27 +466,15 @@ sub generate {
                         # be specific
         }
 
-        $tt->process('index.tt2',
-                     { all_threads => $self->rootset,
-                       threads => \@chunk,
-                       nthpage => sub {
-                           my $n    = shift;
-                           my $page = 'index.html';
-                           return $page if $n == 1;
-                           --$n;
-                           $page =~ s/\./_$n./;
-                           return $page;
-                       },
-                       perpage => $self->threads_per_page,
-                       again   => $page + 1,
-                       list_title => $self->list_title,
-                     },
-                     $self->output . "/$index_file" )
-          or die $tt->error;
         $page++;
-        print STDERR "\rindex $page";
     }
-    print STDERR "\n";
+
+    $self->generate_pages(
+        'index.tt2', 'index.html',
+        threads => $self->rootset,
+        perpage => $self->threads_per_page,
+        list_title => $self->list_title,
+    );
     $self->_bench("thread indexes");
 
     for ( keys %touched_dates ) {
@@ -498,6 +501,7 @@ sub generate {
 
     # and then render all the messages in the dirty threads
     my $count  = 0;
+    my $tt = $self->tt;
     for my $root (values %touched_threads) {
         my $sub = sub {
             my $mail = $_[0]->message or return;
@@ -537,6 +541,8 @@ sub perform {
     $self->sanity;          $self->_bench("sanity");
     $self->order;           $self->_bench("order");
     $self->sanity;          $self->_bench("sanity");
+    $self->copy_files;      $self->_bench("copy files");
+    $self->init_tt;         $self->_bench("tt init");
     $self->generate_lurker; $self->_bench("lurker output");
     $self->strand;          $self->_bench("strand");
     $self->split_deep;      $self->_bench("deep threads split up");
