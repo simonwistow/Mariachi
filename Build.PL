@@ -18,6 +18,7 @@ my $build = Siesta::Build->new(
         'Email::Find'     => 0,
         'Memoize'         => 0,
         'URI::Find::Schemeless::Stricter' => 0,
+        'Test::More'      => 0,
     },
     sign => 1,
     create_makefile_pl => 'passthrough',
