@@ -1,0 +1,13 @@
+[% INCLUDE header.tt2 title="Messages" %]
+
+[% FOREACH root = threads %]
+  <div class=threads>
+    [% INCLUDE thread.tt2 thread=root %]
+  </div>
+[% END %]
+
+[% USE date %]
+Generated [% date.format %] at by mariachi
+
+</body>
+</html>

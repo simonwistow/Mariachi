@@ -1,0 +1,27 @@
+<html>
+<head>
+<title>[% title %]</title>
+<style type="text/css"><!--
+  body {
+    color: #444444;
+    background-color: #FFFFFF;
+  }
+  .headers {
+    border: 1px solid black;
+    color: black;
+    background-color: #dddddd;
+  }
+  .threads {
+    border: 1px solid black;
+    color: black;
+    background-color: #dddddd;
+    margin-top: 10px;
+  }
+  .thread {
+    padding-left: 32px;
+  }
+  
+--></style>
+</head>
+<body>
+

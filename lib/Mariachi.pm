@@ -72,7 +72,7 @@ sub thread {
 sub generate {
     my $self = shift;
 
-    my $tt = Template->new( RECURSION => 1 );
+    my $tt = Template->new( INCLUDE_PATH => 'templates', RECURSION => 1 );
     $tt->process('index.tt2',
                  { threads => [ $self->threader->rootset ] },
                  $self->output . "/index.html") or die $tt->error;
