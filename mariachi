@@ -41,6 +41,15 @@ $threader->thread;
 
 $_->order_children for $threader->rootset;
 
+# (in)sanity test
+if (1) {
+    my %mails = map { $_ => 1 } @mails;
+    $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } ) for $threader->rootset;
+    use Data::Dumper;
+    die "Didn't see ".Dumper [ keys %mails ]
+      if %mails;
+}
+
 print "and threaded in ", tv_interval( $start ), " seconds\n";
 
 $start = [gettimeofday];
