@@ -219,28 +219,21 @@ walking C<threader>
 sub sanity {
     my $self = shift;
 
-    my %mails = map { $_ => 1 } @{ $self->messages };
+    my %mails = map { $_ => $_ } @{ $self->messages };
     my $count;
     my $check = sub {
         my $mail = $_[0]->message or return;
         ++$count;
-        print STDERR "\rverify $count";
+        #print STDERR "\rverify $count";
         delete $mails{ $mail || '' };
     };
     $_->iterate_down( $check ) for $self->threader->rootset;
-    print "\n";
     undef $check;
+    #print STDERR "\n";
 
     return unless %mails;
-    my $sub = sub {
-        my ($cont, $depth) = @_;
-        print "  " x $depth, $cont->messageid, "\n";
-        print "yeep\n" if $mails{$cont->message || ''};
-    };
-    $_->iterate_down( $sub )
-      for $self->threader->rootset;
-    undef $sub;
-    die "Didn't see ".(scalar keys %mails)." messages";
+    print join "\n", map { $_->header("message-id") } values %mails;
+    warn "\nDidn't see ".(scalar keys %mails)." messages";
 }
 
 =head2 ->strand
