@@ -291,8 +291,8 @@ sub time_thread {
         my @cells;
 
         # okay, wander them in date order
-        my $messages = sort { $a->message->epoch_date <=>
-                              $b->message->epoch_date } @messages;
+        @messages = sort { $a->message->epoch_date <=>
+                           $b->message->epoch_date } @messages;
         ROW: for (my $row = 0; $row < @messages; ++$row) {
             my $c = $messages[$row];
             # and place them in cells
