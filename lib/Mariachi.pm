@@ -340,7 +340,6 @@ sub split_deep {
 
 sub generate_lurker {
     my $self = shift;
-    my $data = shift;
 
     my $tt = Template->new(
         INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
@@ -348,13 +347,23 @@ sub generate_lurker {
        );
 
     my $l = Mariachi::Lurker->new;
-    $tt->process('lurker.tt2',
-                 { threads => [ map {
-                     [ $l->arrange( $_ ) ]
-                 } @{ $self->rootset } ],
-                   list_title => $self->list_title,
-               },
-                 $self->output . "/lurker.html" ) or die $tt->error;
+    my $again;
+    do {
+        my $file = 'lurker.html';
+        my $spool = $file;
+        $tt->process('lurker.tt2',
+                     { threads    => [
+                         map { [ $l->arrange( $_ ) ] } @{ $self->rootset }
+                        ],
+                       list_title => $self->list_title,
+                       again      => sub { @_ and $again = shift; $again },
+                       file       => sub { @_ and $file  = shift; $file } },
+                     $self->output . "/$file" )
+          or die $tt->error;
+        if ($file ne $spool) { # the template asked this output to be renamed
+            rename $self->output . "/$spool", $self->output . "/$file";
+        }
+    } while $again;
 }
 
 =head2 ->generate
