@@ -6,7 +6,7 @@ use Digest::MD5 qw(md5_base64);
 use Date::Parse qw(str2time);
 
 use base qw(Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from index next prev epoch_date
+__PACKAGE__->mk_accessors(qw( filename from index next prev epoch_date root
                               year month day ymd _header body ));
 
 sub subject { $_[0]->header('subject') }
@@ -69,7 +69,7 @@ sub new {
 
     $self->body( $mail->body );
 
-    $self->epoch_date(str2time $self->header('date'));
+    $self->epoch_date((str2time $self->header('date')) || 0);
     $self->filename($self->_filename);
     $self->from($self->_from);
     return $self;

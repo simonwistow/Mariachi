@@ -28,7 +28,7 @@ sub _bench {
     my $last  = $self->last_time || $now;
     $start = $self->start_time($now) unless $start;
 
-    printf "%-20s elapsed %.3f total %.3f\n",
+    printf "%-50s %.3f elapsed %.3f total\n",
       $message, tv_interval( $last, $now ), tv_interval( $start, $now );
 
     $self->last_time($now);
@@ -45,11 +45,26 @@ sub load_messages {
     my @msgs;
     while (my $msg = $folder->next_message) {
         push @msgs, $msg;
-
         print "\r$count messages" if ++$count % 100 == 0;
     }
     print "\n";
     $self->messages( \@msgs );
+}
+
+sub dedupe_messages {
+    my $self = shift;
+
+    my %seen;
+    my @new;
+    for my $mail (@{ $self->messages }) {
+        my $msgid = $mail->header('message-id');
+        if ($seen{$msgid}++) {
+            warn "dropping duplicate: $msgid\n";
+            next;
+        }
+        push @new, $mail;
+    }
+    $self->messages(\@new);
 }
 
 sub sanitise_messages {
@@ -92,11 +107,12 @@ sub thread_check {
 
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
-    my %mails = map { $_ => 1 } @{ $self->messages };
-    $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } )
+    my %mails = map { $_ => $_ } @{ $self->messages };
+    $_->iterate_down( sub { delete $mails{ $_[0]->message || '' } } )
       for $self->threader->rootset;
-    die "Didn't see ".Dumper [ keys %mails ]
-      if %mails;
+
+    die "Didn't see ".(scalar keys %mails)." messages"
+      if %mails
 }
 
 # okay, so we want to walk the containers in the following order,
@@ -115,27 +131,41 @@ sub strand {
     my $self = shift;
 
     my (@toodeep, $prev);
-    my $sub = sub {
-        my ($cont, $depth) = @_;
+    for my $root ($self->threader->rootset) {
+        my $sub = sub {
+            my ($cont, $depth) = @_;
 
-        push @toodeep, $cont if ($depth && $depth % 8 == 0);
-        my $mail = $cont->message or return;
-        $prev->next($mail) if $prev;
-        $prev = $mail;
-        $mail->prev($prev);
-    };
+            push @toodeep, $cont if ($depth && $depth % 4 == 0);
+            my $mail = $cont->message or return;
+            $prev->next($mail) if $prev;
+            $mail->prev($prev);
+            $mail->root($root);
+            $prev = $mail;
+        };
 
-    $_->iterate_down( $sub ) for $self->threader->rootset;
-    undef $sub;
+        $root->iterate_down( $sub );
+        undef $sub;
+    }
 
     # untangle things too deep
     for (@toodeep) {
         if ($_->child) {
-            # this is kinda wrong
-            my $new =  Mail::Thread::Container->new('dummy');
-            push @{ $self->threader->{rootset} }, $new;
-            $new->child($_->child);
-            $_->child->parent(undef);
+            # the top one needs to be empty, because we're cheating.
+            # to keep references straight, we'll move its content
+            my $top = $_->topmost;
+            my $root = $top->message->root
+              or die "trying to handle something we didn't iterate over!!!".$top->message->header('message-id');
+            if ($root->message) {
+                my $new = Mail::Thread::Container->new( $root->messageid );
+                $root->messageid( 'dummy' );
+                $new->parent( $root );
+                $new->message( $root->message );
+                $root->message( undef );
+                $new->child( $root->child );
+                $root->child( $new );
+            }
+            $_->child->parent($root);
+            $root->set_children( $_->child, $root->children );
             $_->child(undef);
         }
     }
@@ -199,7 +229,10 @@ sub generate {
                      $self->output . "/$index_file" )
           or die $tt->error;
         $page++;
+        print "\rindex $page";
     }
+    print "\n";
+    $self->_bench("thread indexes");
 
     for ( keys %touched_dates ) {
         my @mails = sort {
@@ -216,6 +249,7 @@ sub generate {
                      $self->output . "/$_/index.html" )
           or die $tt->error;
     }
+    $self->_bench("date indexes");
 
     # figure out adjacent dirty threads
     @threads = $self->threader->rootset;
@@ -240,7 +274,9 @@ sub generate {
         };
         $root->recurse_down( $sub );
         undef $sub;
+        $self->_bench("message bodies $root");
     }
+    $self->_bench("message bodies");
 }
 
 
@@ -250,20 +286,33 @@ sub perform {
     $self->_bench("startup");
 
     $self->load_messages;
-    $self->_bench("load");
+    $self->_bench("load ".scalar @{ $self->messages });
+
+    $self->dedupe_messages;
+    $self->_bench("dedupe");
+
     #$self->sanitise_messages;
     #$self->_bench("sanitise");
 
     $self->thread;
     $self->_bench("thread");
 
+    $self->thread_check;
+    $self->_bench("sanity");
+
+
     $self->order;
     $self->_bench("order");
-    #$self->thread_check;
-    #$self->_bench("sanity");
+
+    $self->thread_check;
+    $self->_bench("sanity");
+
 
     $self->strand;
     $self->_bench("strand");
+
+    $self->thread_check;
+    $self->_bench("sanity");
 
 
     $self->generate;
