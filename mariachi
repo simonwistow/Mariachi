@@ -21,7 +21,7 @@ my @mails = map {
 # this should clean that up
 my %names;
 for my $mail (@mails) {
-    #next; # but it doesn't, we lose messages from the index?
+    next; # but it doesn't, we lose messages from the index?
     for (qw( references in_reply_to )) {
         my $hdr = $mail->$_() or next;
         my $before = $hdr;
