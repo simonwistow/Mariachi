@@ -6,6 +6,7 @@ use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper qw( Dumper );
 use Storable qw( store retrieve );
+use List::Util qw( max );
 
 use base 'Class::Accessor::Fast';
 
@@ -264,6 +265,100 @@ sub sanity {
 
 }
 
+=head2 ->time_thread
+
+return a new structure, like the time-based threading of Lurker
+
+=cut
+
+sub time_thread {
+    my $self = shift;
+
+    my @results;
+    for my $thread (@{ $self->rootset }) {
+        # show them in the old order, and take a copy of the messages
+        # while we're at it
+        my @messages;
+        $thread->iterate_down(
+            sub {
+                my ($c, $d) = @_;
+                print '  ' x $d, $c->messageid, "\n";
+                push @messages, $c if $c->message;
+            } );
+
+        # cells is the 2-d representation, row, col.  the first
+        # message will be at [0][0], it's first reply, [0][1]
+        my @cells;
+
+        # okay, wander them in date order
+        my $messages = sort { $a->message->epoch_date <=>
+                              $b->message->epoch_date } @messages;
+        ROW: for (my $row = 0; $row < @messages; ++$row) {
+            my $c = $messages[$row];
+            # and place them in cells
+
+            # the first one - [0][0]
+            unless (@cells) {
+                $cells[$row][0] = $c;
+                $c->message->cell([$row,0]);
+                next;
+            }
+
+            # look up our parent
+            my $first_parent = $c->parent;
+            while ($first_parent && !$first_parent->message) {
+                $first_parent = $first_parent->parent;
+            }
+
+            unless ($first_parent && $first_parent->message) {
+                # just drop it randomly to one side, since it doesn't
+                # have a clearly identifiable parent
+                my $col = (max map { scalar @$_ } @cells );
+                $cells[$row][$col] = $c;
+                $c->message->cell([$row,$col]);
+                next ROW;
+            }
+            my $col;
+            my ($parent_row, $parent_col) = @{ $first_parent->message->cell };
+            if ($first_parent->child == $c) {
+                # if we're the first child, then we directly beneath
+                # them
+                $col = $parent_col;
+                $cells[$row][$col] = $c;
+                $c->message->cell([$row,$col]);
+            }
+            else {
+                # otherwise, we have to shuffle accross into the first
+                # free column
+                $col = (max map { scalar @$_ } @cells );
+                $cells[$row][$col] = $c;
+                $c->message->cell([$row,$col]);
+                for ($parent_col..$col) {
+                    $cells[$parent_row][$_] ||= '-';
+                }
+                $cells[$parent_row][$col] = '+';
+            }
+            # link with vertical dashes
+            for ($parent_row..$row) {
+                $cells[$_][$col] ||= '|';
+            }
+        }
+
+        push @results, \@cells;
+        # and again in their new state
+        for my $row (@cells) {
+            my $this;
+            for (@$row) {
+                $this ||= $_;
+                print ref $_ ? '*' : $_ ? $_ : ' ';
+            }
+            print "\t", $this->messageid, "\n";
+        }
+        print "\n";
+    }
+    return @results;
+}
+
 =head2 ->strand
 
 run a strand through all C<messages> - wander over C<threader> setting
@@ -469,6 +564,7 @@ sub perform {
     $self->sanity;          $self->_bench("sanity");
     $self->order;           $self->_bench("order");
     $self->sanity;          $self->_bench("sanity");
+    $self->time_thread;     $self->_bench("lurker format thread reworking");
     $self->strand;          $self->_bench("strand");
     $self->split_deep;      $self->_bench("deep threads split up");
     $self->sanity;          $self->_bench("sanity");
