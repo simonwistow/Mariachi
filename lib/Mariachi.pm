@@ -374,8 +374,8 @@ sub time_thread {
                     $col = $parent_col + 1;
                     for my $r (@cells[0..$row -1]) {
                         next if @$r < $col;
-                        my $here = $r->[$col] || 'a';
-                        splice(@$r, $col, 0, $here eq 'e' ? 'c' : 'a');
+                        my $here = $r->[$col] || ' ';
+                        splice(@$r, $col, 0, $here eq '+' ? '-' : ' ');
                     }
                 }
                 else {
@@ -385,21 +385,21 @@ sub time_thread {
                 # the path is now clear, add the line in
                 $cells[$row][$col] = $c;
                 for ($parent_col..$col) {
-                    $cells[$parent_row][$_] ||= 'c';
+                    $cells[$parent_row][$_] ||= '-';
                 }
 
-                $cells[$parent_row][$col] = 'e';
+                $cells[$parent_row][$col] = '+';
             }
             # link with vertical dashes
             for ($parent_row..$row) {
-                $cells[$_][$col] ||= 'b';
+                $cells[$_][$col] ||= '|';
             }
         }
 
         # pad the rows with undefs
         my $maxcol = max map { scalar @$_ } @cells;
         for my $row (@cells) {
-            $row->[$_] ||= undef for (0..$maxcol-1);
+            $row->[$_] ||= ' ' for (0..$maxcol-1);
         }
 
         push @results, \@cells;
@@ -409,7 +409,7 @@ sub time_thread {
                 my $this;
                 for (@$row) {
                     $this ||= $_;
-                    print ref $_ ? 'f' : $_ ? $_ : 'a';
+                    print ref $_ ? '*' : $_ ? $_ : ' ';
                 }
                 print "\t", $this->messageid, "\n";
             }

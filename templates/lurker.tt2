@@ -15,7 +15,7 @@
 
 [% FOREACH root = threads %]
 <h2>[% root.0.0.topmost.message.subject | html%]</h2>
-<table border = "0" cellpadding="0" cellspacing="0">
+<table border="0" cellpadding="0" cellspacing="0">
 	<tr>
 	</tr>
 	[% FOREACH row = root %]
@@ -24,22 +24,24 @@
 	[% ELSE %]
 		[% colour="row1" %]
 	[% END %]
-	<tr class="[% colour %]">
+	<tr class="[% colour %]" height="24">
 		[% FOREACH cell = row %]
-		<td>
+		<td height="24" width="24">
 			[% IF cell.message %]
 			<a href="[% cell.message.filename %]">
-				<img src="images/[% mapping.$cell%].png" border="0">
+				<img src="images/f.png" height="26" width="24" alt="[% cell.message.subject | html %]" border="0">
 			</a>
 				[% message = cell.message %]
 			[% ELSE %]
-				<img src="images/[% mapping.$cell %].png">
+				<img src="images/[% mapping.$cell %].png" height="24" width="24" alt="[% cell %]" border="0">
 			[% END %]</td>
 		[% END %]
-	<td>
+	<td height="24">
+	<font size="1">
 	[% message.first_sentence | html %]<br />
 	<a href="[% message.filename %]">[% message.from | html %]
 	[% date.format(message.epoch_date) | html %]</a>
+	<font size="1">
 	</td>
 	</tr>
 	[% END %]
