@@ -6,7 +6,6 @@ use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper qw( Dumper );
 use Storable qw( store retrieve );
-use List::Util qw( max );
 
 use base 'Class::Accessor::Fast';
 
@@ -265,173 +264,6 @@ sub sanity {
 
 }
 
-=head2 ->time_thread
-
-return a new structure, like the time-based threading of Lurker
-
-It's pretty faithful, apart from we mindfully cross streams
-vertically, this way we don't use all the horizontal space in the
-world dealing with it.
-
-=cut
-
-# identify the co-ordinates of something
-sub _cell {
-    my $cells = shift;
-    my $find = shift;
-    for (my $y = 0; $y < @$cells; ++$y) {
-        for (my $x = 0; $x < @{ $cells->[$y] }; ++$x) {
-            my $here = $cells->[$y][$x];
-            return [$y, $x] if ref $here && $here == $find;
-        }
-    }
-    return;
-}
-
-sub _draw_cells {
-    my $cells = shift;
-    # and again in their new state
-    print map { $_ % 10 } 0..20;
-    print "\n";
-    for my $row (@$cells) {
-        my $this;
-        for (@$row) {
-            $this = $_ if ref $_;
-            print ref $_ ? '*' : $_ ? $_ : ' ';
-        }
-        print "\t", $this->messageid, "\n";
-    }
-    print "\n";
-}
-
-use constant debug => 0;
-
-sub time_thread {
-    my $self = shift;
-
-    my @results;
-    for my $thread (@{ $self->rootset }) {
-        # show them in th old order, and take a copy of the messages
-        # while we're at it
-        my @messages;
-        $thread->iterate_down(
-            sub {
-                my ($c, $d) = @_;
-                print '  ' x $d, $c->messageid, "\n" if 0;
-                push @messages, $c if $c->message;
-            } );
-
-        # cells is the 2-d representation, row, col.  the first
-        # message will be at [0][0], it's first reply, [0][1]
-        my @cells;
-
-        # okay, wander them in date order
-        @messages = sort { $a->message->epoch_date <=>
-                           $b->message->epoch_date } @messages;
-        ROW: for (my $row = 0; $row < @messages; ++$row) {
-            my $c = $messages[$row];
-            # and place them in cells
-
-            # the first one - [0][0]
-            unless (@cells) {
-                $cells[$row][0] = $c;
-                next;
-            }
-
-            # look up our parent
-            my $first_parent = $c->parent;
-            while ($first_parent && !$first_parent->message) {
-                $first_parent = $first_parent->parent;
-            }
-
-            unless ($first_parent && $first_parent->message &&
-                      _cell(\@cells, $first_parent) ) {
-                # just drop it randomly to one side, since it doesn't
-                # have a clearly identifiable parent
-                my $col = (max map { scalar @$_ } @cells );
-                $cells[$row][$col] = $c;
-                next ROW;
-            }
-            my $col;
-            my ($parent_row, $parent_col) = @{ _cell( \@cells, $first_parent ) };
-            if ($first_parent->child == $c) {
-                # if we're the first child, then we directly beneath
-                # them
-                $col = $parent_col;
-            }
-            else {
-                # otherwise, we have to shuffle accross into the first
-                # free column, but we have to not cross the streams.
-                # if given this tree:
-                # a + +
-                # b | |
-                #   c |
-                #     d
-                #
-                # e arrives, and is a reply to b, we can't just go:
-                # a + +
-                # b - - +
-                #   c | |
-                #     d |
-                #       e
-                #
-                # it's messy and confusing.  instead we have to do
-                # extra work so we end up at
-                # a - + +
-                # b + | |
-                #   | c |
-                #   |   d
-                #   e
-
-                # okay, figure out what the max col is
-                my $max_col = (max map { scalar @$_ } @cells );
-                # would drawing the simple horizontal line cross the streams?
-                if (grep { my $c = $cells[$parent_row][$_] || '';
-                           ref $c || $c eq '|' }
-                      $parent_col+1..$max_col) {
-                    print "Crossing the streams, horizontally\n" if debug;
-                    # we want to end up in $parent_col + 1 and
-                    # everything in that column needs to get shuffled
-                    # over one
-                    $col = $parent_col + 1;
-                    for my $r (@cells[0 .. $row - 1]) {
-                        next if @$r < $col;
-                        my $here = $r->[$col] || '';
-                        splice(@$r, $col, 0, $here eq '+' ? '-' : undef);
-                    }
-                    $col = $parent_col + 1;
-                }
-                else {
-                    $col = $max_col;
-                }
-
-                # the path is now clear, add the line in
-                for ($parent_col..$col) {
-                    $cells[$parent_row][$_] ||= '-';
-                }
-                $cells[$parent_row][$col] = '+';
-            }
-
-            # place the message
-            $cells[$row][$col] = $c;
-            # link with vertical dashes
-            for ($parent_row+1..$row-1) {
-                $cells[$_][$col] = ($cells[$_][$col] || '') eq '-' ? '{' : '|';
-            }
-            _draw_cells(\@cells) if debug;
-        }
-
-        # pad the rows with spaces
-        my $maxcol = max map { scalar @$_ } @cells;
-        for my $row (@cells) {
-            $row->[$_] ||= ' ' for (0..$maxcol-1);
-        }
-
-        push @results, \@cells;
-    }
-    return @results;
-}
-
 =head2 ->strand
 
 run a strand through all C<messages> - wander over C<threader> setting
@@ -515,8 +347,11 @@ sub generate_lurker {
         RECURSION => 1
        );
 
+    my $l = Mariachi::Lurker->new;
     $tt->process('lurker.tt2',
-                 { threads => $data,
+                 { threads => [ map {
+                     [ $l->arrange( $_ ) ]
+                 } @{ $self->rootset } ],
                    list_title => $self->list_title,
                },
                  $self->output . "/lurker.html" ) or die $tt->error;
@@ -657,8 +492,7 @@ sub perform {
     $self->sanity;          $self->_bench("sanity");
     $self->order;           $self->_bench("order");
     $self->sanity;          $self->_bench("sanity");
-    my @data = $self->time_thread;     $self->_bench("lurker format thread reworking");
-    $self->generate_lurker( \@data ); $self->_bench("lurker output");
+    $self->generate_lurker; $self->_bench("lurker output");
     $self->strand;          $self->_bench("strand");
     $self->split_deep;      $self->_bench("deep threads split up");
     $self->sanity;          $self->_bench("sanity");
@@ -672,6 +506,12 @@ use Email::Folder;
 use base 'Email::Folder';
 
 sub bless_message { Mariachi::Message->new($_[1]) }
+
+package Mariachi::Lurker;
+use Mail::Thread::Chronological;
+use base 'Mail::Thread::Chronological';
+
+sub extract_time { $_[1]->message->epoch_date }
 
 1;
 
