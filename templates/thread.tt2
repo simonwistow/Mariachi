@@ -2,7 +2,7 @@
 [% IF thread.message %]
   [% IF thread.message == message %]<b>You are here:</b>[% END %]
   <a href="[% thread.message.filename %]" name="[% thread.message.filename %]">[% thread.message.subject | html %]</a><br />
-  <small>[% thread.message.from | html %] <i>[% thread.message.date | html %]</i></small>
+  <small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i></small>
 [% ELSE %]
   (message not available)
 [% END %]

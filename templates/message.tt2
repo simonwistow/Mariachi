@@ -7,6 +7,8 @@
 <p>
 [<a href="[% message.last.filename %]">last</a>]
 [<a href="[% message.next.filename %]">next</a>]
+[<a href="[% message.index %]#[% message.filename %]">thread index</a>]
+
 </p>
 
 <div class=headers>
@@ -18,8 +20,9 @@
 <pre>[% message.body | html %]</pre>
 
 [% INCLUDE prevnext.tt2 %]
-
-[% PROCESS bottomthread.tt2 %]
+<div class=threads>
+[% PROCESS thread.tt2 %]
+</div>
 
 </body>
 </html>

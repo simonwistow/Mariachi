@@ -4,7 +4,7 @@
 <strong>Parent:</strong>
 <div class="thread">
 <a href="[% parent.filename %]">[% parent.subject | html %]<a/><br/>
-<small>[% parent.from | html%] <i>[% parent.date %]</i></small><br/>
+<small>[% parent.from | html%] <i>[% date.format(child.epoch_date) %]</i></small><br/>
 </div>
 [% END %]
 
@@ -14,7 +14,7 @@
 [% FOREACH temp = container.children %]
 [% SET child = temp.message %]
 <a href="[% child.filename %]">[% child.subject | html %]</a><br/>
-<small>[% child.from | html %] <i>[% child.date %]</i></small><br/>
+<small>[% child.from | html %] <i>[% date.format(child.epoch_date) %]</i></small><br/>
 [% END %]
 </div>
 [% END %]
