@@ -1,0 +1,15 @@
+Build.PL
+MANIFEST
+META.yml
+TODO
+lib/Mariachi.pm
+lib/Mariachi/Message.pm
+lib/Template/Plugin/Mariachi.pm
+mariachi
+templates/date.tt2
+templates/header.tt2
+templates/index.tt2
+templates/message.tt2
+templates/pagenav.tt2
+templates/prevnext.tt2
+templates/thread.tt2
