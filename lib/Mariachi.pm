@@ -244,6 +244,7 @@ sub sanity {
     #print STDERR "\n";
 
     return unless %mails;
+    die "\nDidn't see ".(scalar keys %mails)." messages";
     print join "\n", map {
         my @ancestors;
         my $x = $_->container;
@@ -260,8 +261,6 @@ sub sanity {
         }
         $_->header("message-id"), @ancestors
     } values %mails;
-    die "\nDidn't see ".(scalar keys %mails)." messages";
-
 
 }
 

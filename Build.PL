@@ -16,6 +16,7 @@ my $build = Siesta::Build->new(
         'Date::Parse'     => 0,
         'Class::Accessor' => 0,
         'Email::Find'     => 0,
+        'Memoize'         => 0,
         'URI::Find::Schemeless::Stricter' => 0,
     },
    );
