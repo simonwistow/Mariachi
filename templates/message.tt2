@@ -7,6 +7,7 @@
 [<a href="[% base %][% message.next.filename %]">next</a>]
 [<a href="[% base %][% message.index %]#[% message.filename %]">thread index</a>]
 
+[Date index for <a href="[% base %][% message.year_index %]">[% message.ymd.0 %]</a>/<a href="[% base %][% message.month_index %]">[% message.ymd.1 %]</a>/<a href="[% base %][% message.day_index %]">[% message.ymd.2 %]</a>]
 </p>
 
 <div class=headers>

@@ -3,7 +3,10 @@
 <h1>messages for [% archive_date %]</h1>
 
 [% FOR mail=mails %]
-<br /><a href="[% base %][% mail.filename %]">[% date.format(mail.epoch_date) %]: [% mail.subject %]</a>
-
+<ul class=threads>
+<li class=thread>
+<a href="[% base %][% mail.filename %]" name="[% mail.filename %]">
+[% mail.subject | html %]</a><br />
+<small>[% mail.from | html %] <i>[% date.format(mail.epoch_date) %]</i></small>
+</li></ul>
 [% END %]
-

@@ -6,7 +6,7 @@ use Digest::MD5 qw(md5_base64);
 use Date::Parse qw(str2time);
 
 use base qw(Email::Simple Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from index next last epoch_date ));
+__PACKAGE__->mk_accessors(qw( filename from index next last epoch_date year_index month_index day_index ymd));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
@@ -21,7 +21,12 @@ sub _filename {
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
 
     my @date = localtime $self->epoch_date;
-    my $path = sprintf("%04d/%02d/%02d/", $date[5]+1900, $date[4]+1, $date[3]);
+    my @ymd = ($date[5]+1900, $date[4]+1, $date[3]);
+    my $path = sprintf("%04d/%02d/%02d/", @ymd);
+    $self->year_index(sprintf("%04d/index.html", @ymd));
+    $self->month_index(sprintf("%04d/%02d/index.html", @ymd));
+    $self->day_index(sprintf("%04d/%02d/%02d/index.html", @ymd));
+    $self->ymd(\@ymd);
     return $path.$filename;
 }
 
