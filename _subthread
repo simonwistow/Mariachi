@@ -1,4 +1,5 @@
 <li>
+[% thread.message.walkover %]
 [% IF thread.message %]
         [% IF thread.message == message %]<b>You are here:</b>[% END %]
 	<a href="[% thread.message.filename %]">[% thread.message.subject %]</a><br />

@@ -1,8 +1,8 @@
 <html><head></head>
 <body>
 <ul>
-[% FOREACH thread = threads %]
-	[% PROCESS _subthread %]
+[% FOREACH root = threads %]
+	[% INCLUDE _subthread thread=root %]
 [% END %]
 </ul>
 <hr>
