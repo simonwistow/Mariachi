@@ -69,6 +69,7 @@ sub find_root_thread {
 }
 
 package Mail::Thread::Mariachi;
+use Mail::Thread(); # Ensure the module is actually installed and loaded.
 use base 'Mail::Thread';
 use Date::Parse qw(str2time);
 
@@ -143,14 +144,17 @@ use base qw(Mail::Internet);
 sub filename {
     my $self = shift;
     my $foo = md5_base64( $self->as_string ).".html";
-    $foo =~ tr{/}{_}; # slashes aren't a good idea (yes we're possibly
-                      # introducing collisions)
+    $foo =~ tr{/+}{_-};	# + isn't as portably safe as -
+    # This isn't going to create collisions as the 64 characters used are:
+    # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
     $foo;
 }
 
 sub subject {
     my $self = shift;
-    $self->head->get('subject');
+    my $subject = $self->head->get('subject');
+    chomp $subject;
+    $subject;
 }
 
 sub references {
@@ -167,7 +171,9 @@ sub in_reply_to {
 
 sub date {
     my $self = shift;
-    $self->head->get('date');
+    my $date = $self->head->get('date');
+    chomp $date;
+    $date;
 }
 
 sub from {
@@ -175,5 +181,6 @@ sub from {
     my $from = $self->head->get('from');
     $from =~ s/<.*>//;
     $from =~ s/\@\S+//;
+    $from =~ s/\s+\z//;
     $from;
 }
