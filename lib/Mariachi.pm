@@ -136,23 +136,24 @@ sub generate {
                      },
                      $self->output . "/$index_file" )
           or die $tt->error;
-
-        warn "Date indexes..\n";
-        
-        for (keys(%date_indexes)) {
-            my @depth = split(m!/!, $_));
-            my $depth = scalar(@depth);
-            $tt->process('date.tt2',
-                         { archive_date => $_,
-                           mails => $date_indexes{$_},
-                           base => "../" x $depth,
-                         },
-                         $self->output . "/$_/index.html" )
-              or die $tt->error;
-        }
-
         $page++;
     }
+
+
+    warn "Date indexes..\n";
+
+    for (keys(%date_indexes)) {
+        my @depth = split(m!/!, $_);
+        my $depth = scalar(@depth);
+        $tt->process('date.tt2',
+                     { archive_date => $_,
+                       mails => $date_indexes{$_},
+                       base => "../" x $depth,
+                     },
+                     $self->output . "/$_/index.html" )
+          or die $tt->error;
+    }
+
 
     # figure out adjacent dirty threads
     @threads = $self->threader->rootset;
