@@ -3,7 +3,7 @@
 
 [% FOREACH p = [0..pages] %]
 [% IF p == page ; "<b>a</b>"; ELSE %]
-<a href="index[% IF page > 0; "_" _ page ; END %].html">a</a>[% END %]
+<a href="index[% IF p > 0; "_" _ p ; END %].html">a</a>[% END %]
 [% END %]
 [% IF page < pages %]<a href="index_[% page + 1 %].html">chi &gt;</a>[% ELSE %]chi[% END %]
 <br />[ Page [% page + 1 %] of [% pages + 1 %] ]
