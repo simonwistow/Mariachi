@@ -1,4 +1,4 @@
-HEAD	Unreleased
+0.3	23rd May, 2003
 	Fixed Message->from
 
 	Tweaks to thread output - only display subject where it's

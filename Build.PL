@@ -19,6 +19,8 @@ my $build = Siesta::Build->new(
         'Memoize'         => 0,
         'URI::Find::Schemeless::Stricter' => 0,
         'Test::More'      => 0,
+        'Storable'        => 0,
+        'Time::HiRes'     => 0,
     },
     sign => 1,
     create_makefile_pl => 'passthrough',
