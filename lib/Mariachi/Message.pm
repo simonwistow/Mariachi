@@ -14,8 +14,7 @@ sub date    { $_[0]->header('date') }
 sub _filename {
     my $self = shift;
 
-    # TODO - assign a messageid where none currently exists
-    my $msgid =  $self->header('message-id');
+    my $msgid =  $self->header('message-id') || $self->_gen_fake_id();
     my $filename = substr( md5_base64( $msgid ), 0, 8 ).".html";
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
@@ -59,4 +58,11 @@ sub in_reply_to {
     @_ ? $self->header_set('in-reply-to', @_) : $self->header('in-reply-to');
 }
 
+sub _make_fake_id {
+    my $self = shift;
+    my ($from,$domain) = split /\@/, $self->_from();
+    my $date           = $self->epoch_date();
+    my $hash           = md5_base64("$from$date");
+    return "$hash\@$domain";
+}
 1;
