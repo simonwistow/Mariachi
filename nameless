@@ -1,0 +1,54 @@
+#!/usr/local/bin/perl
+use strict;
+use Mail::Thread;
+use File::Find::Rule;
+use File::Basename;
+use Data::Dumper;
+
+use Template;
+
+my $maildir = shift || die "need an input maildir";
+my $output = shift || die "where do we put them?";
+
+
+my %names;
+my @mails = map {
+    open my $fh, "<$_" or die "open: '$_' $!";
+    Message->new($fh);
+} find( file => in => $maildir );
+
+
+print scalar @mails, " mails\n";
+
+#die Dumper \@mails;
+
+my $threader = Mail::Thread->new( @mails );
+$threader->thread;
+
+my $tt = Template->new;
+
+$tt->process('index.tt2',
+             { threads => [ $threader->rootset ] },
+             "$output/index.html") or die $tt->error;
+
+for my $mail (@mails) {
+    $tt->process('message.tt2',
+                 { threads => [ $threader->rootset ],
+                   message => $mail,
+                 },
+                 "$output/".$mail->filename) or die $tt->error;
+}
+
+exit 0;
+
+package Message;
+use Mail::Internet;
+use Digest::MD5 qw(md5_base64);
+
+use base qw(Mail::Internet);
+
+sub filename {
+    my $self = shift;
+
+    md5_base64( $self->as_string ).".html";
+}

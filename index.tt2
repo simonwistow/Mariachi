@@ -1,0 +1,23 @@
+[% BLOCK subthread %]
+<li>
+	[% IF thread.message %]
+		<a href="[% thread.message.filename %]">[% thread.message.head.get('subject') %]</a>
+	[% ELSE %]
+		(no message)
+	[% END %]
+	[% IF thread.child %]
+<ul>
+	[% PROCESS subthread thread=thread.child level=level+1 %]
+</ul>
+	[% END %]
+</li>
+	[% IF thread.next %]
+		[% PROCESS subthread thread=thread.next level=level %]
+	[% END %]
+[% END %]
+
+<ul>
+[% FOREACH thread = threads %]
+	[% PROCESS subthread level=0 %]
+[% END %]
+</ul>

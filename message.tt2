@@ -1,0 +1,3 @@
+[% message.head.get('subject') | html %]
+<hr>
+<pre>[% message.body.join("") | html %]</pre>
