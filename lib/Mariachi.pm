@@ -79,6 +79,9 @@ sub generate {
     my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my %touched_threads;
+
+    my $last_message_in_thread;
+    
     while (@threads) {
         warn "Index page " . ($page + 1) . "\n";
         # @chunk is the chunk of threads on this page
@@ -89,6 +92,22 @@ sub generate {
 
                              $mail->index( $index_file );
                              $mail->root( $_ );
+
+                             my $next = $_[0]->child || $_[0]->next;
+                             my $parent = $_[0];
+                             while ($parent and !$next) {
+                                 $parent = $parent->parent;
+                                 $next = $parent->next if $parent;
+                             }
+                             $mail->next($next->message->filename) if $next;
+                             $next->message->last($mail->filename) if $next;
+                             
+                             if ($last_message_in_thread) {
+                                 $last_message_in_thread->next($mail->filename);
+                                 $mail->last($last_message_in_thread->filename);
+                                 undef $last_message_in_thread;
+                             }
+                             $last_message_in_thread = $mail unless $next;
 
                              $touched_threads{ $_ } = $_
                                unless -e $self->output."/".$mail->filename;

@@ -2,12 +2,18 @@
 
 <h1>[% message.subject | html %]</h1>
 
+<p>
+[<a href="[% message.last %]">last</a>]
+[<a href="[% message.next %]">next</a>]
+</p>
+
 <div class=headers>
 <b>From:</b> [% message.from %]
 [% FOREACH hdr = headers %]
 <br><b>[% hdr %]:</b> [% message.header(hdr) | html %]
 [% END %]
 </div>
+
 
 <pre>[% message.body | html %]</pre>
 
