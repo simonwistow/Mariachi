@@ -107,6 +107,7 @@ sub first_lines {
     return $self->_significant_signal(lines => $num);
 }
 
+*first_line = \&first_lines;
 
 =head2 ->first_paragraph
 

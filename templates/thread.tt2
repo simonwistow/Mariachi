@@ -9,8 +9,8 @@
 		[% END %]
 		[% thread.message.subject | html %]
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
-		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i><br />
-		[% thread.message.first_lines | html%]</small>
+		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i>[% context = mariachi.config.get('thread-context') ; IF context  %]<br />
+		[% thread.message.$context | html%][% END %]</small>
 	[% ELSE %]
 		[%# The previous subject line was the same, so don't show it %]
 		[% IF this ; "<b>" ; ELSE %]
@@ -18,8 +18,9 @@
 		[% END %]
 		[% thread.message.from | html %] 
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
-		<i>[% date.format(thread.message.epoch_date) %]</i><br />
-		<small>[% thread.message.first_lines | html %]</small>
+		<i>[% date.format(thread.message.epoch_date) %]</i>
+		[% context = mariachi.config.get('thread-context') ; IF context  %]<br />
+		<small>[% thread.message.$context | html%]</small>[% END %]
 	
 	[% END %]
 [% ELSE %]

@@ -127,8 +127,37 @@ Disable lurker output
 $config->define("lurker", {
     DEFAULT  => 1,
     ARGCOUNT => ARGCOUNT_NONE
+});
+
+=head2 --thread-context I<context_style>
+
+Controls the amount of context to show with a message in thread view.
+
+Legal values for I<context_style> are C<first_line>,
+C<first_paragraph>, C<first_sentence>, and the empty string (the
+default).
+
+=head2 --lurker-context I<context_style>
+
+See C<thread-context>
+
+=cut
+
+my %context_styles = map {
+    $_ => 1
+} '', qw( first_line first_paragraph first_sentence );
+
+$config->define("thread-context", {
+    DEFAULT => '',
+    ARGCOUNT => ARGCOUNT_ONE,
+    VALIDATE => sub { $context_styles{ $_[1] } }
    });
 
+$config->define("lurker-context", {
+    DEFAULT => '',
+    ARGCOUNT => ARGCOUNT_ONE,
+    VALIDATE => sub { $context_styles{ $_[1] } }
+   });
 
 
 # define the system and the user config files
