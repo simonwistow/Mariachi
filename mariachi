@@ -1,99 +1,11 @@
 #!/usr/local/bin/perl -w
 use strict;
-use Template;
-use Time::HiRes qw( gettimeofday tv_interval );
-use Data::Dumper;
-use Date::Parse qw(str2time);
+use Mariachi;
 
-use Email::Thread;
-use Mariachi::Folder;
-
-my $start = [gettimeofday];
-
-my $maildir = shift || die "need an input maildir";
+my $input = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
+my $mariachi = Mariachi->new( input  => $input,
+                              output => $output,
+                            );
 
-my $folder = Mariachi::Folder->new($maildir)
-  or die "Unable to open $maildir";
-my @mails  = $folder->messages();
-
-# some messages have been near mail2news gateways, which means that
-# some message ids get munged like so: <$group/$message_id>
-
-# this should clean that up
-my %names;
-for my $mail (@mails) {
-    for (qw( references in_reply_to )) {
-        my $hdr = $mail->$_() or next;
-        my $before = $hdr;
-        $hdr =~ s{<[^>]*?/}{<}g or next;
-        #print "$_ $before$_: $hdr";
-        $mail->$_($hdr);
-    }
-}
-
-print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
-$start = [gettimeofday];
-
-my $threader = Email::Thread->new( @mails );
-$threader->thread;
-
-my %date;
-$threader->order( sub {
-                      # cache the dates
-                      $date{$_} = str2time $_->topmost->message->date for @_;
-                      sort { $date{$a} <=> $date{$b} } @_;
-                  });
-
-# Mail::Thread (in)sanity test
-if (1) {
-    my %mails = map { $_ => 1 } @mails;
-    $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } ) for $threader->rootset;
-    die "Didn't see ".Dumper [ keys %mails ]
-      if %mails;
-}
-
-print "and threaded in ", tv_interval( $start ), " seconds\n";
-
-$start = [gettimeofday];
-
-my $tt = Template->new( RECURSION => 1 );
-
-$tt->process('index.tt2',
-             { threads => [ $threader->rootset ] },
-             "$output/index.html") or die $tt->error;
-
-print "thread index in ", tv_interval( $start ),"seconds\n";
-# tt (in) sanity test
-if (1) {
-    my @unwalked = grep { $_->walkedover != 1 } @mails;
-    my @ids = map { [ $_->header('message-id'), $_->from, $_->subject, $_->walkedover ] } @unwalked;
-    die "Stange walk for ".(Dumper \@ids) . @ids . " messages"
-      if @ids;
-}
-
-for my $mail (@mails) {
-    $tt->process('message.tt2',
-                 { thread  => find_root_thread($threader, $mail),
-                   message => $mail,
-                   headers => [ 'Subject', 'Date' ],
-                 },
-                 "$output/".$mail->filename) or die $tt->error;
-}
-
-print "output generation took ", tv_interval( $start ), " seconds\n";
-
-exit 0;
-
-# given a message, find the root of the thread that it's in
-sub find_root_thread {
-    my $self = shift;
-    my $mail = shift;
-    my $id   = $self->_msgid($mail);
-    for my $cont ($self->rootset) {
-        my $in;
-        $cont->recurse_down( sub { $_[0]->messageid eq $id and $in = 1 } );
-        return $cont if $in;
-    }
-}
-
+$mariachi->perform;
