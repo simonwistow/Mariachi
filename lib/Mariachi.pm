@@ -185,10 +185,8 @@ sub generate {
                     push @{ $dates{ $mail->month } }, $mail;
                     push @{ $dates{ $mail->day } }, $mail;
                 }
-                $sub->($c->child);
-                $sub->($c->next);
             };
-            $sub->($root);
+            $root->iterate_down($sub);
             undef $sub; # since we closed over ourself, we'll have to
                         # be specific
         }
