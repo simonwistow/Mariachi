@@ -34,7 +34,7 @@
                 [% ELSE %] 
                     [% img = 'message-terminal' %]
                 [% END %]
-            	<td width="24"><a href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="*" border="0"></a></td>
+            	<td width="24"><a name="[% cell.message.filename %]" href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="*" border="0"></a></td>
             [% ELSE %]
                 [% IF cell == '+' %][%# may really be a tee, or a corner %]
                     [% cell = row.$tmp.match('[+{-]') ? 'T' : 'L' %]
@@ -42,6 +42,7 @@
 		<td width="24"><img src="images/[% mapping.$cell %].png" height="24" width="24" alt="[% cell %]"></td>
 	    [% END %]
         [% END %]
+        [% message.linked.lurker = file _ '#' _ message.filename %]
         <td><img src="images/blank.png" width="48" height="24"></td>
 	<td rowspan="2"><small>[% message.first_sentence | html %]<br />
 			<a href="[% message.filename %]">[% message.from | html %]</a> [% date.format( message.epoch_date ) %]</small></td>

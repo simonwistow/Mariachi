@@ -8,7 +8,7 @@ use Memoize;
 
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw( body _header index next prev root
-                              epoch_date day month year ymd
+                              epoch_date day month year ymd linked
                             ));
 
 =head1 NAME
@@ -32,6 +32,7 @@ sub new {
     my $self = $class->SUPER::new;
     my $mail = Email::Simple->new($source) or return;
 
+    $self->linked({});
     $self->_header({});
     $self->header_set( $_, $mail->header($_) ) for
       qw( message-id from subject date references in-reply-to );
@@ -147,7 +148,7 @@ sub _significant_signal {
     while (@lines && $not_started) {
         # next line
         local $_ = shift @lines;
-	#print "}}$_";
+        #print "}}$_";
 
         # blank lines, euurgh
         next if /^\s*$/;
@@ -166,7 +167,7 @@ sub _significant_signal {
                         |good (?:morning|afternoon|day|evening))
                  (?:\W.{0,14})?\s*$/ixs;
 
-	# snips
+        # snips
         next if m~\s*                          # whitespace
                   [<.=-_*+({\[]*?              # opening bracket
                   (?:snip|cut|delete|deleted)  # snip?
@@ -181,8 +182,8 @@ sub _significant_signal {
         # ... or [...]
         next if m~\s*\[?\.\.\.]?\s*$~;
 
-	# if we got this far then we've probably got past the
-	# attibutation lines
+        # if we got this far then we've probably got past the
+        # attibutation lines
         unshift @lines, $_;  # undo the shift
         undef $not_started;  # and say we've started.
     }
@@ -191,16 +192,16 @@ sub _significant_signal {
     foreach (@lines) {
         # are we at the end of a paragraph?
         last if (defined $opts{'para'}  # paragraph mode?
-		 && $opts{'para'}==1
-		 && $lines>0            # got some lines aready?
-		 && /^\s*$/);           # and now we've found a gap?
+                 && $opts{'para'}==1
+                 && $lines>0            # got some lines aready?
+                 && /^\s*$/);           # and now we've found a gap?
 
         # blank lines, euurgh
         next if /^\s*$/;
         # quotes (we don't count quoted From's)
         next if /^\s*>(?!From)/;
 
-	# if we got this far then the line was a useful one
+        # if we got this far then the line was a useful one
         $lines++;
 
         # sort of munged Froms
