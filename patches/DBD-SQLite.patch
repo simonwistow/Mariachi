@@ -1,0 +1,24 @@
+--- DBD-SQLite-0.28/dbdimp.c	2003-08-23 11:45:57.000000000 +0100
++++ DBD-SQLite-0.28_hck/dbdimp.c	2003-10-16 01:29:00.000000000 +0100
+@@ -472,11 +472,12 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp
+     av = DBIS->get_fbav(imp_sth);
+     for (i = 0; i < numFields; i++) {
+         char *val = imp_sth->results[i];
+-        /* warn("fetching: %d == %s\n", (current_entry + i), val); */
++        /* warn("fetching: %d == %s\n", i, val); */
+         if (val != NULL) {
+             size_t len = strlen(val);
+             char *decoded;
+             if (chopBlanks) {
++                val = strdup(val);
+                 while((len > 0) && (val[len-1] == ' ')) {
+                     len--;
+                 }
+@@ -485,6 +486,7 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp
+             decoded = sqlite_decode(imp_dbh, val, &len);
+             sv_setpvn(AvARRAY(av)[i], decoded, len);
+             free(decoded);
++            if (chopBlanks) free(val);
+ 
+             if (!imp_dbh->no_utf8_flag) {
+             /* sv_utf8_encode(AvARRAY(av)[i]); */
