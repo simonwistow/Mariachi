@@ -2,6 +2,7 @@
 [% IF thread.message %]
 	[% this = thread.message == message %]
 	[% IF thread.message.prev.subject != thread.message.subject %]
+		[%# The previous subject line differed, so show the new one %]
 		[% IF this ; "<b>" ; ELSE %]
 		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
 		[% END %]
@@ -10,6 +11,7 @@
 		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i><br />
 		[% thread.message.first_lines | html%]</small>
 	[% ELSE %]
+		[%# The previous subject line was the same, so don't show it %]
 		[% IF this ; "<b>" ; ELSE %]
 		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
 		[% END %]
