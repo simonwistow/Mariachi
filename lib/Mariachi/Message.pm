@@ -118,8 +118,8 @@ sub filename {
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
-	
-	# then lc for appearences sake
+
+        # then lc for appearences sake
     return $self->day."/".lc($filename);
 }
 memoize('filename');
@@ -141,8 +141,11 @@ __END__
 The date header pared into epoch seconds
 
 =head2 ->ymd
+
 =head2 ->day
+
 =head2 ->month
+
 =head2 ->year
 
 epoch_date formatted in useful ways
