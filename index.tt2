@@ -6,5 +6,6 @@
 [% END %]
 </ul>
 <hr>
-Generated at XXX by mariachi
+[% USE date %]
+Generated [% date.format %] at by mariachi
 </body>
