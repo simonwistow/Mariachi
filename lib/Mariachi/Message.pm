@@ -71,7 +71,8 @@ sub new {
 =head2 ->header_set
 
 C<body>, C<header>, and C<header_set> are provided for interface
-compatibility with Email::Simple
+compatibility with Email::Simple.  Note that only a small subset of
+headers are available.
 
 =cut
 
@@ -86,6 +87,7 @@ sub header_set {
     my $meth = "hdr_" . _blat( shift );
     $self->$meth( shift );
 }
+
 
 =head2 ->first_lines
 
@@ -113,6 +115,7 @@ sub first_sentence {
     return Text::Original::first_sentence( $self->body );
 }
 
+
 =head2 ->body_sigless
 
 Returns the body with the signature (defined as anything
@@ -127,6 +130,7 @@ sub body_sigless {
     return $body;
 }
 
+
 =head2 ->sig
 
 Returns the stripped sig.
@@ -139,7 +143,6 @@ sub sig {
     $sig =~ s/^\n// if $sig;
     return $sig;
 }
-
 
 
 =head2 ->from
@@ -159,6 +162,7 @@ sub from {
     return $from;
 }
 memoize('from');
+
 
 =head2 ->subject
 
@@ -195,8 +199,6 @@ __END__
 =head2 ->epoch_date
 
 The date header pared into epoch seconds
-
-=head2 ->ymd
 
 =head2 ->day
 
