@@ -143,6 +143,8 @@ $mariachi->messages
 sub thread {
     my $self = shift;
 
+    #$Mail::Thread::nosubject = 1;
+    #$Mail::Thread::noprune = 1;
     my $threader = Email::Thread->new( @{ $self->messages } );
     $self->threader($threader);
     $threader->thread;
@@ -201,25 +203,18 @@ sub sanity {
 
 =head2 $mariachi->strand
 
-wander over $mariachi->threader setting the Message ->next and ->prev
-links and reparenting subthreads that are considered too deep
+run a strand through all the messages - wander over
+$mariachi->threader setting the Message ->next and ->prev links
 
 =cut
 
 sub strand {
     my $self = shift;
 
-    my (@toodeep, $prev);
+    my $prev;
     for my $root ($self->threader->rootset) {
         my $sub = sub {
-            my ($cont, $depth) = @_;
-
-            # only note first entries
-            if ($depth && ($depth % 14 == 0)
-                && $cont->parent->child == $cont) {
-                push @toodeep, $cont;
-            }
-            my $mail = $cont->message or return;
+            my $mail = $_[0]->message or return;
             $prev->next($mail) if $prev;
             $mail->prev($prev);
             $mail->root($root);
@@ -229,8 +224,34 @@ sub strand {
         $root->iterate_down( $sub );
         undef $sub;
     }
+}
 
-    # untangle things too deep
+=head2 $mariachi->split_deep
+
+wander over $mariachi->threader reparenting subthreads that are
+considered too deep
+
+=cut
+
+sub split_deep {
+    my $self = shift;
+
+    my @toodeep;
+    for my $root ($self->threader->rootset) {
+        my $sub = sub {
+            my ($cont, $depth) = @_;
+
+            # only note first entries
+            if ($depth && ($depth % 14 == 0)
+                && $cont->parent->child == $cont) {
+                push @toodeep, $cont;
+            }
+        };
+
+        $root->iterate_down( $sub );
+        undef $sub;
+    }
+
     for (@toodeep) {
         print "stranding ", $_->messageid, "\n";
 
@@ -374,16 +395,17 @@ sub perform {
     my $self = shift;
 
     $self->_bench("reticulating splines");
-    $self->load;     $self->_bench("load ".scalar @{ $self->messages });
-    $self->dedupe;   $self->_bench("dedupe");
-    #$self->sanitise; $self->_bench("sanitise");
-    $self->thread;   $self->_bench("thread");
-    $self->sanity;   $self->_bench("sanity");
-    $self->order;    $self->_bench("order");
-    $self->sanity;   $self->_bench("sanity");
-    $self->strand;   $self->_bench("strand");
-    $self->sanity;   $self->_bench("sanity");
-    $self->generate; $self->_bench("generate");
+    $self->load;            $self->_bench("load ".scalar @{ $self->messages });
+    $self->dedupe;          $self->_bench("dedupe");
+    #$self->sanitise;        $self->_bench("sanitise");
+    $self->thread;          $self->_bench("thread");
+    $self->sanity;          $self->_bench("sanity");
+    $self->order;           $self->_bench("order");
+    $self->sanity;          $self->_bench("sanity");
+    $self->strand;          $self->_bench("strand");
+    $self->split_deep;      $self->_bench("deep threads split up");
+    $self->sanity;          $self->_bench("sanity");
+    $self->generate;        $self->_bench("generate");
 }
 
 
