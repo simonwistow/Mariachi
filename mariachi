@@ -38,6 +38,9 @@ An example config file might look like
     input  = ~/mail
     output = ~/public_html/mymail/
 
+For more information about the configuration file format, consult
+L<AppConfig>
+
 You don't have to supply everything (as long as the required options
 are then passed on the command line).
 
@@ -52,13 +55,13 @@ The source mail folder
 =cut
 
 # define the command line options
-my $config = AppConfig->new;
+my $config = AppConfig->new({ PEDANTIC => 1,
+                              GLOBAL   => {
+                                  ARGCOUNT => ARGCOUNT_ONE,
+                              }
+                             });
 
-$config->define("input", {
-    ALIAS    => 'i',
-    ARGCOUNT => ARGCOUNT_ONE,
-});
-
+$config->define("input");
 
 =head2 -o, --output I<directory>
 
@@ -66,23 +69,25 @@ Name of the directory to write output to
 
 =cut
 
-$config->define("output", {
-    ALIAS    => 'o',
-    ARGCOUNT => ARGCOUNT_ONE,
-});
+$config->define("output");
 
 
-=head2 -t, --title I<title>
+=head2 -n, --name I<title>
 
 What to use in the title of the mailing lists
 
 =cut
 
-$config->define("title", {
-    ALIAS    => 't',
-    ARGCOUNT => ARGCOUNT_ONE,
-});
+$config->define("name");
 
+
+=head2 -t, --templates I<directory>
+
+The set of templates to use
+
+=cut
+
+$config->define("templates", { ARGCOUNT => ARGCOUNT_LIST });
 
 =head2 -f --force
 
@@ -90,11 +95,7 @@ Force is probably not a good name
 
 =cut
 
-$config->define("force", {
-    ALIAS    => 'f',
-    DEFAULT  => 0,
-    ARGCOUNT => ARGCOUNT_NONE,
-});
+$config->define("force", { DEFAULT  => 0, ARGCOUNT => ARGCOUNT_NONE });
 
 
 # define the system and the user config files
@@ -113,16 +114,13 @@ die "need an input maildir"
 die "where do we put them?"
   unless defined $config->output;
 
-unless (defined $config->title) {
+unless (defined $config->name) {
     warn "Should pass a list title\n";
-    $config->title("no list title");
+    $config->name("no list title");
 }
 
-Mariachi->new( input  => $config->input,
-               output => $config->output,
-               force  => $config->force,
+Mariachi->new( config  => $config,
                threads_per_page => 20,
-               list_title => $config->title,
               )
   ->perform;
 

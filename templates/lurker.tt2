@@ -1,8 +1,8 @@
 [%# lurker-style thread indexes %]
-[% PROCESS header.tt2 title=mariachi.list_title _ ' - Cronological View' %]
+[% PROCESS header.tt2 title=mariachi.config.name _ ' - Cronological View' %]
 [% PROCESS paginate.tt2 %]
 
-<h1>[% mariachi.list_title %]</h1>
+<h1>[% mariachi.config.name %]</h1>
 
 [% PROCESS pagenav.tt2 %]
 

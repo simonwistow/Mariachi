@@ -14,8 +14,7 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.31;
 
-__PACKAGE__->mk_accessors( qw( input output force messages rootset
-                               threads_per_page list_title
+__PACKAGE__->mk_accessors( qw( config messages rootset
                                start_time last_time tt ) );
 
 =head1 NAME
@@ -26,13 +25,10 @@ Mariachi - all dancing mail archive generator
 
 =head1 ACESSORS
 
-=head2 ->input
+=head2 ->config
 
-The source of mail that we're acting on
-
-=head2 ->output
-
-The output directory
+An L<AppConfig> object containing the current configuration.  See
+L<mariachi> for details.
 
 =head2 ->messages
 
@@ -41,15 +37,6 @@ The current set of messages
 =head2 ->rootset
 
 The rootset of threaded messages
-
-=head2 ->threads_per_page
-
-How many top level threads to put on a thread index page.  Used by
-C<generate>
-
-=head2 ->list_title
-
-The name of this list.  Used by C<generate>
 
 =head2 ->start_time
 
@@ -97,13 +84,13 @@ populate C<messages> from C<input>
 sub load {
     my $self = shift;
 
-    my $folder = Mariachi::Folder->new( $self->input )
-      or die "Unable to open ".$self->input;
+    my $folder = Mariachi::Folder->new( $self->config->input )
+      or die "Unable to open ".$self->config->input;
 
     $| = 1;
     my $cache;
-    $cache = $self->input.".cache" if $ENV{M_CACHE};
-    if ($cache && -e $cache && !$self->force()) {
+    $cache = $self->config->input.".cache" if $ENV{M_CACHE};
+    if ($cache && -e $cache && !$self->config->force) {
         print "pulling in $cache\n";
         $self->messages( retrieve( $cache ) );
         return;
@@ -392,12 +379,12 @@ sub generate_pages {
               },
               set_again => sub { $again = shift; return },
               set_file  => sub { $file  = shift; return }, },
-            $self->output . "/$$.tmp" )
+            $self->config->output . "/$$.tmp" )
           or die $self->tt->error;
 
         print STDERR "\r$$.tmp -> $file";
-        mkpath dirname $self->output . "/$file";
-        rename $self->output . "/$$.tmp", $self->output . "/$file"
+        mkpath dirname $self->config->output . "/$file";
+        rename $self->config->output . "/$$.tmp", $self->config->output . "/$file"
           or die "$!";
     } while $again;
     print STDERR "\n";
@@ -432,7 +419,7 @@ sub generate_thread {
     $self->generate_pages(
         'index.tt2', 'index.html',
         content => $self->rootset,
-        perpage => $self->threads_per_page,
+        perpage => 20,
     );
 }
 
@@ -455,7 +442,8 @@ sub generate_date {
 
             if (my $mail = $c->message) {
                 # mark the thread dirty, if the message is new
-                unless (-e $self->output."/".$mail->filename && !$self->force()) {
+                unless (-e $self->config->output."/".$mail->filename &&
+                        !$self->config->force) {
                     # dirty up the date indexes
                     $touched_dates{ $mail->year } = 1;
                     $touched_dates{ $mail->month } = 1;
@@ -506,7 +494,8 @@ sub generate_bodies {
             if (my $mail = $c->message) {
                 # mark the thread dirty, if the message is new
                 $touched_threads{ $root } = $root
-                  unless -e $self->output."/".$mail->filename && !$self->force();
+                  unless -e $self->config->output."/".$mail->filename
+                    && !$self->config->force;
             }
         };
         $root->iterate_down($sub);
@@ -535,7 +524,7 @@ sub generate_bodies {
                            message   => $mail,
                            container => $_[0],
                          },
-                         $self->output . "/" . $mail->filename)
+                         $self->config->output . "/" . $mail->filename)
               or die $tt->error;
         };
         $root->recurse_down( $sub );
