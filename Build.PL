@@ -11,6 +11,7 @@ my $build = Siesta::Build->new(
         'Test::More'      => 0,
     },
     requires     => {
+        'perl'            => '5.006',
         'AppConfig'       => '1.55',
         'Class::Accessor' => 0,
         'Date::Parse'     => 0,
