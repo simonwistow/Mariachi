@@ -2,13 +2,14 @@
 [% PROCESS header.tt2 title=list_title %]
 
 [%# set up pagination %]
-[% thispage = again || 1 ; nextpage = thispage + 1 ; 
-   filename = thispage == 1 ? 'lurker.html' : 'lurker' _ thispage _ '.html' %]
+[% thispage = again || 1 ; nextpage = thispage + 1 %]
 [% USE page = Page(threads.size, perpage, thispage) %] 
 [% IF thispage == page.last_page ; set_again(0) ; ELSE ; set_again(nextpage) ; END %]
-[% set_file( filename ) %]
+[% set_file( nthpage( thispage ) ) %]
 
 <h1>[% list_title %]</h1>
+
+[% PROCESS pagenav.tt2 %]
 
 [%     mapping = { ' ' => 'blank',
                    '|' => 'vertical',
@@ -18,7 +19,6 @@
                    '{' => 'cross',
                   }
 %]
-
 
 [% FOREACH root = page.splice(threads) %]
 <h2>[% root.0.0.topmost.message.subject | html%]</h2>
@@ -67,6 +67,10 @@
 </table>
 
 [% END %]
+
+
+[% PROCESS pagenav.tt2 %]
+
 <hr />
 <p>Generated at [% date.format %] by mariachi</p>
 

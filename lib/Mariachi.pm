@@ -373,6 +373,14 @@ sub generate_pages {
                      { @_,
                        again     => sub { $again },
                        file      => sub { $file  },
+                       nthpage  => sub {
+                           my $n    = shift;
+                           my $page = $spool;
+                           return $page if $n == 1;
+                           --$n;
+                           $page =~ s/\./$n./;
+                           return $page;
+                       },
                        set_again => sub { $again = shift; return },
                        set_file  => sub { $file  = shift; return }, },
                      $self->output . "/$$.tmp" )

@@ -1,12 +1,12 @@
-[% IF pages %]
-<p>[% IF page > 0 %]<a href="index[% IF page > 1; "_" _ (page - 1) ; END %].html">&lt; mari</a>[% ELSE %]mari[% END %]
+[% IF page.last_page > 1 %]
+<p>[% IF page.previous_page %]<a href="[% nthpage( page.previous_page ) %]">&lt; mari</a>[% ELSE %]mari[% END %]
 
-[% FOREACH p = [0..pages] %]
-[% IF p == page ; "<b>a</b>"; ELSE %]
-<a href="index[% IF p > 0; "_" _ p ; END %].html">a</a>[% END %]
+[% FOREACH p = [1 .. page.last_page] %]
+[% IF p == page.current_page ; "<b>a</b>"; ELSE %]
+<a href="[% nthpage( p ) %]">a</a>[% END %]
 [% END %]
-[% IF page < pages %]<a href="index_[% page + 1 %].html">chi &gt;</a>[% ELSE %]chi[% END %]
-<br />[ Page [% page + 1 %] of [% pages + 1 %] ]
+[% IF page.next_page %]<a href="[% nthpage( page.next_page ) %]">chi &gt;</a>[% ELSE %]chi[% END %]
+<br />[ Page [% page.current_page %] of [% page.last_page %] ]
 </p>
 [% END %]
 
