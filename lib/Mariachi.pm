@@ -432,42 +432,30 @@ sub generate {
     my %touched_threads;
     my %touched_dates;
     my %dates;
-    my $prev;
-    while (@threads) {
-        # @chunk is the chunk of threads on this page
-        my @chunk = splice @threads, 0, $self->threads_per_page;
-        my $index_file = $page ? "index_$page.html" : "index.html";
-        for my $root (@chunk) {
-            my $sub;
-            $sub = sub {
-                my $c = shift or return;
+    # wander things to find dirty threads, and dates
+    for my $root (@{ $self->rootset }) {
+        my $sub;
+        $sub = sub {
+            my $c = shift or return;
 
-                if (my $mail = $c->message) {
-                    # let the message know where it's linked from, and
-                    # what it's linked to
-                    $mail->index($index_file);
-
-                    # and mark the thread dirty, if the message is new
-                    unless (-e $self->output."/".$mail->filename) {
-                        $touched_threads{ $root } = $root;
-                        # dirty up the date indexes
-                        $touched_dates{ $mail->year } = 1;
-                        $touched_dates{ $mail->month } = 1;
-                        $touched_dates{ $mail->day } = 1;
-                    }
-
-                    # add things to the date indexes
-                    push @{ $dates{ $mail->year } }, $mail;
-                    push @{ $dates{ $mail->month } }, $mail;
-                    push @{ $dates{ $mail->day } }, $mail;
+            if (my $mail = $c->message) {
+                # mark the thread dirty, if the message is new
+                unless (-e $self->output."/".$mail->filename) {
+                    $touched_threads{ $root } = $root;
+                    # dirty up the date indexes
+                    $touched_dates{ $mail->year } = 1;
+                    $touched_dates{ $mail->month } = 1;
+                    $touched_dates{ $mail->day } = 1;
                 }
-            };
-            $root->iterate_down($sub);
-            undef $sub; # since we closed over ourself, we'll have to
-                        # be specific
-        }
 
-        $page++;
+                # add things to the date indexes
+                push @{ $dates{ $mail->year } }, $mail;
+                push @{ $dates{ $mail->month } }, $mail;
+                push @{ $dates{ $mail->day } }, $mail;
+            }
+        };
+        $root->iterate_down($sub);
+        undef $sub; # since we closed over ourself, we'll have to be specific
     }
 
     $self->generate_pages(

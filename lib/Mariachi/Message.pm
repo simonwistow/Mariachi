@@ -7,7 +7,7 @@ use Date::Parse qw(str2time);
 use Memoize;
 
 use base qw(Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( body _header index next prev root
+__PACKAGE__->mk_accessors(qw( body _header next prev root
                               epoch_date day month year ymd linked
                             ));
 
@@ -309,7 +309,10 @@ The date header pared into epoch seconds
 
 epoch_date formatted in useful ways
 
-=head2 ->index
+=head2 ->linked
+
+hashref of indexes that link to us.  key is the type of index, value
+is the filename
 
 =head2 ->next
 
