@@ -143,7 +143,7 @@ use base qw(Mail::Internet);
 sub filename {
     my $self = shift;
     my $foo = md5_base64( $self->as_string ).".html";
-    $foo =~ s{/}{_}g; # slashes aren't a good idea (yes we're possibly
+    $foo =~ tr{/}{_}; # slashes aren't a good idea (yes we're possibly
                       # introducing collisions)
     $foo;
 }
