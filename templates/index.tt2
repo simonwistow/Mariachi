@@ -14,7 +14,7 @@
 
 [% PROCESS pagenav.tt2 %]
 
-<p>Generated [% date.format %] at by mariachi</p>
+<p>Generated at [% date.format %] by mariachi</p>
 
 </body>
 </html>
