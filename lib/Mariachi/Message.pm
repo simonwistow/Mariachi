@@ -37,6 +37,9 @@ sub new {
       qw( message-id from subject date references in-reply-to );
     $self->body( $mail->body );
 
+    $self->header_set('message-id', $self->_make_fake_id)
+      unless $self->header('message-id');
+
     # this is a bit ugly to be here but much quicker than making it a
     # memoized lookup
     my @date = localtime $self->epoch_date(str2time( $self->header('date') )
@@ -75,16 +78,16 @@ sub header_set {
 
 =head2 ->body_sigless
 
-Returns the body with the signature (defined as anything 
+Returns the body with the signature (defined as anything
 after "\n-- \n") removed.
 
-=cut 
+=cut
 
 sub body_sigless {
-	my $self    = shift;
-	my ($body, undef) = split /^-- $/m, $self->body, 2;
+    my $self = shift;
+    my ($body, undef) = split /^-- $/m, $self->body, 2;
 
-	return $body;
+    return $body;
 }
 
 =head2 ->sig
@@ -94,7 +97,7 @@ Returns the stripped sig.
 =cut
 
 sub sig {
-    my $self    = shift;
+    my $self = shift;
     my (undef, $sig) = split /^-- $/m, $self->body, 2;
 
     return $sig;
@@ -141,8 +144,6 @@ sub filename {
     my $self = shift;
 
     my $msgid = $self->header('message-id');
-    $msgid = $self->header_set('message-id', $self->_make_fake_id)
-      unless $msgid;
 
     my $filename = substr( md5_hex( $msgid ), 0, 8 ).".html";
     return $self->day."/".$filename;
