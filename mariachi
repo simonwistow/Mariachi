@@ -1,6 +1,5 @@
 #!/usr/local/bin/perl -w
 use strict;
-use Mariachi;
 use AppConfig qw(:argcount);
 
 =head1 NAME
@@ -159,6 +158,18 @@ $config->define("lurker-context", {
     VALIDATE => sub { $context_styles{ $_[1] } }
    });
 
+=head2 --class I<class>
+
+Specifies using a class other than C<Mariachi> to do the rendering.
+
+=cut
+
+$config->define("class", {
+    DEFAULT => 'Mariachi',
+    ARGCOUNT => ARGCOUNT_ONE,
+    VALIDATE => sub { eval "require $_[1]; 1" }
+   });
+
 
 # define the system and the user config files
 my $sys  = "/usr/local/mariachi/mariachi.conf";
@@ -190,9 +201,9 @@ unless (defined $config->name) {
     $config->name("no list name");
 }
 
-Mariachi->new( config  => $config,
-               threads_per_page => 20,
-              )
+$config->class->new( config  => $config,
+                     threads_per_page => 20,
+                    )
   ->perform;
 
 
