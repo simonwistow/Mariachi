@@ -18,11 +18,10 @@ __PACKAGE__->set_up_later(
 #these are just sops
 __PACKAGE__->columns( TEMP => qw( prev next root ) );
 
-# copy things out of the email::simple message and into the columns
-sub _blat {
+sub _header_column {
     my $thing = shift;
     $thing =~ tr/-/_/;
-    return lc $thing;
+    return "hdr_" . lc $thing;
 }
 
 =head1 NAME
@@ -48,7 +47,7 @@ sub new {
     return $old if $old;
 
     my $data = {};
-    $data->{ 'hdr_' . _blat( $_ ) } = $mail->header($_) for
+    $data->{ _header_column $_ } = $mail->header($_) for
       qw( message-id from subject date references in-reply-to );
 
     $data->{body}       = $mail->body;
@@ -78,13 +77,13 @@ headers are available.
 
 sub header {
     my $self = shift;
-    my $meth = "hdr_" . _blat( shift );
+    my $meth = _header_column shift;
     $self->$meth();
 }
 
 sub header_set {
     my $self = shift;
-    my $meth = "hdr_" . _blat( shift );
+    my $meth = _header_column shift;
     $self->$meth( shift );
 }
 

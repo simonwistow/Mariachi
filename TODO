@@ -19,8 +19,6 @@ main problem is set_up_table will want to have a table there at
 requite Mariachi::Message time, but we won't know where to put one
 until after argument parsing is done
 
-before_create trigger that can fill out the basic headings.
-
 mark the threading columns as Essential so that they get pulled in all
 at once
 
