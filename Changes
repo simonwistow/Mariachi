@@ -1,3 +1,22 @@
+HEAD	Unreleased
+	Now we ship with a lurker-style output.
+
+	template paths are specifyable
+
+	template directories will be scanned for non-template files,
+	and those that exist will be copied into the output tree
+
+	Mariachi::Message now has first_line, first_sentence and
+	others, to allow extra context in the thread index pages.
+
+	INCOMPATIBLE CHANGES: 
+	
+	Command line interface changed.  Now instead of positional
+	parameters we use named ones.
+
+	Mariach->{list_name,input,output,threads_per_page} have all been
+	replaced with a single AppConfig instance, C<config>
+
 0.31	23rd May, 2003
 	New distribution, without the failing t/0signature.t
 
