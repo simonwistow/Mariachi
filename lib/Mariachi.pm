@@ -146,7 +146,7 @@ sub generate {
 
     for my $index ( keys %touched_date_threads ) {
         my $date = $index;
-        $date =~ s/\.html$//;
+        $date =~ s/\/index\.html$//;
         my @mails = sort {
             $a->epoch_date <=> $b->epoch_date
         } @{ $date_indexes{$index} };
