@@ -1,5 +1,5 @@
 [% IF pages %]
-<p>
+<p>[
 [% IF page == 1 %]<a href="index.html">&lt; prev</a>[% END %]
 [% IF page > 1 %]<a href="index_[% page - 1 %].html">&lt; prev</a>[% END %]
 [% FOREACH p = [0..pages] %]
@@ -11,8 +11,8 @@
 [% IF p == page %]</b>[% END %]
 [% END %]
 [% IF page < pages %]<a href="index_[% page + 1 %].html">next &gt;</a>[% END %]
-
+]
+<br />( Page [% page + 1 %] of [% pages + 1 %] )
 </p>
-( Page [% page + 1 %] of [% pages + 1 %] )
 [% END %]
 

@@ -1,7 +1,9 @@
 [% PROCESS header.tt2 title="Messages" %]
 
 [% IF threads.0.message.header("List-Id") %]
-<div class="title">[% threads.0.message.header("List-Id") | html %]</div>
+<h1>[% threads.0.message.header("List-Id") | html %]</h1>
+[% ELSE %]
+<h1>thread index</h1>
 [% END %]
 
 [% PROCESS pagenav.tt2 %]

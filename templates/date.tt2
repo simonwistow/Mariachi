@@ -2,6 +2,12 @@
 
 <h1>messages for [% archive_date %]</h1>
 
+<p>
+[<a href="TODO">last</a>]
+[<a href="TODO">next</a>]
+[<a href="[% base %]/index.html">thread index</a>]
+</p>
+
 [% FOR mail=mails %]
 <ul class=threads>
 <li class=thread>
