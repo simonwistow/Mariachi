@@ -12,7 +12,7 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.1;
 
-__PACKAGE__->mk_accessors( qw( messages threader input output
+__PACKAGE__->mk_accessors( qw( input output messages threader
                                threads_per_page list_title
                                start_time last_time ) );
 
@@ -22,7 +22,42 @@ Mariachi - all dancing mail archive generator
 
 =head1 DESCRIPTION
 
+=head1 ACESSORS
+
+=head2 ->input
+
+The source of mail that we're acting on
+
+=head2 ->output
+
+The output directory
+
+=head2 ->messages
+
+The current set of messages
+
+=head2 ->threader
+
+An Email::Thread instance of the threaded C<messages>
+
+=head2 ->threads_per_page
+
+How many top level threads to put on a thread index page.  Used by
+C<generate>
+
+=head2 ->list_title
+
+The name of this list.  Used by C<generate>
+
+=head2 ->start_time
+=head2 ->last_time
+
+Used interannly by the C<_bench> method
+
+
 =head1 METHODS
+
+All of these are instance methods, unless stated.
 
 =head2 ->new( %initial_values )
 
@@ -50,9 +85,9 @@ sub _bench {
     $self->last_time($now);
 }
 
-=head2 $mariachi->load
+=head2 ->load
 
-populate $mariachi->messages from $mariachi->input
+populate C<messages> from C<input>
 
 =cut
 
@@ -87,9 +122,9 @@ sub load {
     $self->messages( \@msgs );
 }
 
-=head2 $mariachi->dedupe
+=head2 ->dedupe
 
-remove duplicates from $mariachi->messages
+remove duplicates from C<messages>
 
 =cut
 
@@ -109,13 +144,13 @@ sub dedupe {
     $self->messages(\@new);
 }
 
-=head2 $mariachi->sanitise
+=head2 ->sanitise
 
 some messages have been near mail2news gateways, which means that some
 message ids in the C<references> and C<in-reply-to> headers get munged
 like so: <$group/$message_id>
 
-fix this in $mariachi->messages
+fix this in C<messages>
 
 =cut
 
@@ -133,10 +168,10 @@ sub sanitise {
     }
 }
 
-=head2 $mariachi->thread
+=head2 ->thread
 
-populate $mariachi->threader with a Mail::Thread object created from
-$mariachi->messages
+populate C<threader> with an Email::Thread object created from
+C<messages>
 
 =cut
 
@@ -150,9 +185,9 @@ sub thread {
     $threader->thread;
 }
 
-=head2 $mariachi->order
+=head2 ->order
 
-order $mariachi->threaders containers by date
+order C<threaders> containers by date
 
 =cut
 
@@ -167,10 +202,10 @@ sub order {
                         }) for $self->threader->rootset;
 }
 
-=head2 $mariachi->sanity
+=head2 ->sanity
 
-(in)sanity test - check everything in $mariachi->messages is reachable
-by walking $mariachi->threader
+(in)sanity test - check everything in C<messages> is reachable when
+walking C<threader>
 
 =cut
 
@@ -201,10 +236,10 @@ sub sanity {
     die "Didn't see ".(scalar keys %mails)." messages";
 }
 
-=head2 $mariachi->strand
+=head2 ->strand
 
-run a strand through all the messages - wander over
-$mariachi->threader setting the Message ->next and ->prev links
+run a strand through all C<messages> - wander over C<threader> setting
+the Message ->next and ->prev links
 
 =cut
 
@@ -226,9 +261,9 @@ sub strand {
     }
 }
 
-=head2 $mariachi->split_deep
+=head2 ->split_deep
 
-wander over $mariachi->threader reparenting subthreads that are
+wander over C<threader> reparenting subthreads that are
 considered too deep
 
 =cut
@@ -272,9 +307,9 @@ sub split_deep {
     }
 }
 
-=head2 $mariachi->generate
+=head2 ->generate
 
-render thread tree into the directory of $mariachi->output
+render thread tree into the directory of C<output>
 
 =cut
 
@@ -385,7 +420,7 @@ sub generate {
     $self->_bench("message bodies");
 }
 
-=head2 $mariachi->perform
+=head2 ->perform
 
 do all the right steps
 
