@@ -118,7 +118,9 @@ sub filename {
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
-    return $self->day."/$filename";
+	
+	# then lc for appearences sake
+    return $self->day."/".lc($filename);
 }
 memoize('filename');
 
