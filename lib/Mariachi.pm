@@ -59,7 +59,8 @@ sub thread {
                           sort { $date{$a} <=> $date{$b} } @_;
                       } );
 
-    # (in)sanity test
+    # (in)sanity test - is everything in the original mbox in the
+    # thread tree?
     if (1) {
         my %mails = map { $_ => 1 } @{ $self->messages };
         $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } )
@@ -76,26 +77,26 @@ sub generate {
 
     my $page = 0;
     my @threads = $self->threader->rootset;
-    my $pages = int(scalar(@threads)/$self->threads_per_page);
-    while (scalar(@threads)) {
-        warn "Index page ".($page+1)."\n";
-        my @page = splice(@threads, 0, $self->threads_per_page);
-        $_->recurse_down(sub {
-            my $message = $_[0]->message();
-            return unless $message;
-            $message->page($page);
-        })
-            for (@page);
+    my $pages = int(scalar(@threads) / $self->threads_per_page);
+    while (@threads) {
+        warn "Index page " . ($page + 1) . "\n";
+        # @chunk is the chunk of threads on this page
+        my @chunk = splice(@threads, 0, $self->threads_per_page);
+        $_->recurse_down(sub { eval { $_[0]->message->page( $page ) } })
+          for @chunk;
+
         $tt->process('index.tt2',
-                     { threads => \@page,
+                     { threads => \@chunk,
                        page => $page,
                        pages => $pages,
                      },
                      $self->output . ($page ? "/index_$page.html" : "/index.html") )
-            or die $tt->error;
+          or die $tt->error;
         $page++;
     }
-    # tt (in) sanity test
+
+    # tt (in) sanity test - we should have walked over everything in
+    # the mbox once and only once in generating the thread index
     if (1) {
         my @unwalked = grep { $_->walkedover != 1 } @{ $self->messages };
         my @ids = map { [ $_->header('message-id'), $_->from, $_->subject, $_->walkedover ] } @unwalked;
