@@ -1,5 +1,8 @@
 [% PROCESS header.tt2 title = message.subject %]
 
+
+[% USE Mariachi %]
+
 <h1>[% message.subject | html %]</h1>
 
 <p>
@@ -11,12 +14,12 @@
 </p>
 
 <div class=headers>
-<b>From:</b> [% message.from %]<br />
-<b>Subject:</b> [% message.subject %]<br />
+<b>From:</b> [% message.from | mariachi | html %]<br />
+<b>Subject:</b> [% message.subject | html %]<br />
 <b>Date:</b> [% date.format(message.epoch_date) %]<br />
 </div>
 
-<pre>[% message.body | html %]</pre>
+<pre>[% message.body | html | mariachi  %]</pre>
 
 [% INCLUDE prevnext.tt2 %]
 <ul class="threads">
