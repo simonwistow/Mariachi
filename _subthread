@@ -6,7 +6,7 @@
 [% END %]
 [% IF thread.child %]
 <ul>
-[% PROCESS _subthread thread=thread.child %]
+	[% PROCESS _subthread thread=thread.child %]
 </ul>
 [% END %]
 </li>

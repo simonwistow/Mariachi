@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -w
 use strict;
-use Mail::Thread;
-use Date::Parse qw(str2time);
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 
@@ -34,8 +32,10 @@ for my $mail (@mails) {
 print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
 $start = [gettimeofday];
 
-my $threader = Mail::Thread->new( @mails );
+my $threader = Mail::Thread::Mariachi->new( @mails );
 $threader->thread;
+
+$_->order_children for $threader->rootset;
 
 print "and threaded in ", tv_interval( $start ), " seconds\n";
 
@@ -43,15 +43,15 @@ $start = [gettimeofday];
 
 my $tt = Template->new( RECURSION => 1 );
 
+
 $tt->process('index.tt2',
-             { threads => [ $threader->rootset ] },
+             { threads => [ $threader->sorted_rootset ] },
              "$output/index.html") or die $tt->error;
 
 for my $mail (@mails) {
     $tt->process('message.tt2',
-                 { threads => [ $threader->rootset ],
+                 { thread  => find_root_thread($threader, $mail),
                    message => $mail,
-                   thread  => find_root_thread($threader, $mail),
                  },
                  "$output/".$mail->filename) or die $tt->error;
 }
@@ -63,11 +63,75 @@ exit 0;
 sub find_root_thread {
     my $self = shift;
     my $mail = shift;
-    my $cont = $self->{id_table}{ $self->_msgid($mail) };
-    while ($cont) {
-        return $cont if !$cont->parent;
-        $cont = $cont->parent;
+    for my $cont ($self->rootset) {
+        return $cont if $cont->find_message_id( $self->_msgid($mail) );
     }
+}
+
+package Mail::Thread::Mariachi;
+use base 'Mail::Thread';
+use Date::Parse qw(str2time);
+
+sub _container_class { "Mail::Thread::Container::Mariachi" }
+
+sub sorted_rootset {
+    my $self = shift;
+    _sort( $self->rootset );
+}
+
+sub _sort {
+    return map {
+        $_->[0]
+    } sort {
+        $a->[1] <=> $b->[1]
+    } map {
+        [ $_ => eval { str2time $_->topmost->message->date } || 0 ]
+    } @_;
+}
+
+package Mail::Thread::Container::Mariachi;
+use base 'Mail::Thread::Container';
+
+sub order_children {
+    my $self = shift;
+
+    # go depth first
+    eval { $self->child->order_children };
+    eval { $self->next->order_children };
+
+    my @neworder = Mail::Thread::Mariachi::_sort( $self->children );
+
+    my $walk = $self->child( shift @neworder );
+    while (scalar @neworder) {
+        $walk = $walk->next( shift @neworder );
+    }
+    $walk->next(undef) if $walk;
+}
+
+# the topmost container with a message attached
+sub topmost {
+    my $self = shift;
+
+    return $self if $self->message;
+    my $sib = eval { $self->next->topmost };
+    return $sib if $sib;
+    my $kid = eval { $self->child->topmost };
+    return $kid if $kid;
+    return;
+}
+
+sub find_message_id {
+    my $self = shift;
+    my $id = shift;
+
+    return $self if $self->id eq $id;
+    for ( qw( child next ) ) {
+        my $next = $self->$_();
+        next unless $next;
+        $next = $next->find_message_id($id);
+        return $next if $next;
+    }
+    return;
 }
 
 package Message;
@@ -78,7 +142,10 @@ use base qw(Mail::Internet);
 
 sub filename {
     my $self = shift;
-    md5_base64( $self->as_string ).".html"
+    my $foo = md5_base64( $self->as_string ).".html";
+    $foo =~ s{/}{_}g; # slashes aren't a good idea (yes we're possibly
+                      # introducing collisions)
+    $foo;
 }
 
 sub subject {
@@ -88,13 +155,13 @@ sub subject {
 
 sub references {
     my $self = shift;
-    $self->head->replace('references', shift) if @_;
+    $self->head->replace('references', @_) if @_;
     $self->head->get('references');
 }
 
 sub in_reply_to {
     my $self = shift;
-    $self->head->replace('in-reply-to', shift) if @_;
+    $self->head->replace('in-reply-to', @_) if @_;
     $self->head->get('in-reply-to');
 }
 
