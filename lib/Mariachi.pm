@@ -287,6 +287,8 @@ sub _cell {
 sub _draw_cells {
     my $cells = shift;
     # and again in their new state
+    print map { $_ % 10 } 0..20;
+    print "\n";
     for my $row (@$cells) {
         my $this;
         for (@$row) {
@@ -298,7 +300,7 @@ sub _draw_cells {
     print "\n";
 }
 
-use constant debug => 0;
+use constant debug => 1;
 
 sub time_thread {
     my $self = shift;
@@ -406,8 +408,8 @@ sub time_thread {
                 $cells[$parent_row][$col] = '+';
             }
             # would drawing the vertical line cross the streams?
-            if (grep { $cells[$_][$col] } $parent_row+1..$row) {
-                print "Crossing the streams, | over something\n" if debug;
+            if (my @intersects = grep { $cells[$_][$col] } $parent_row+1..$row) {
+                print "Crossing the streams, vertically\n" if debug;
                 # a +
                 #   b
                 # c +
@@ -423,6 +425,22 @@ sub time_thread {
                 #   e
                 # to draw the vertical would cross the c -> d path
 
+                if (0) {
+                    # figure out what the longest thing we intersect is
+                    for my $r (map { $cells[$_] } @intersects) {
+                        for (0..@$r) {
+                            $col = $_ if ($r->[$_] || '') ne ' ' && $_ > $col;
+                        }
+                    }
+                    # stretch the parent, and its ancestors over that
+                    my $distance = $col - $parent_col;
+                    print "target column is $col, moving column $parent_col, $distance columns over\n" if debug;
+                    for my $r (@cells) {
+                        my @insert = (($r->[$parent_col-1] || '') =~ /[+-]/ ? '-' : ' ')
+                          x $distance;
+                        splice(@$r, $parent_col + 1, 0, @insert);
+                    }
+                }
             }
 
             # place the message
