@@ -29,6 +29,7 @@ BEGIN {
     $class = Module::Build->subclass(
         class => 'My::Build',
         code  => <<'CODE' );
+#CODE
     use File::Find;
 
     sub ACTION_install {
