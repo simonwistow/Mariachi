@@ -11,7 +11,7 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.1;
 
-__PACKAGE__->mk_accessors( qw( messages threader input output threads_per_page ) );
+__PACKAGE__->mk_accessors( qw( messages threader input output threads_per_page list_title) );
 
 sub new {
     my $class = shift;
@@ -133,6 +133,7 @@ sub generate {
                      { threads => \@chunk,
                        page => $page,
                        pages => $pages,
+                       list_title => $self->list_title,
                      },
                      $self->output . "/$index_file" )
           or die $tt->error;
