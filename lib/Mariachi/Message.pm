@@ -107,15 +107,28 @@ sub first_lines {
 }
 
 
-=head2 ->first_para 
+=head2 ->first_paragraph
 
-Returns 
+Returns the first original paragraph of the message
 
 =cut
 
-sub first_para {
+sub first_paragraph {
     my $self = shift;
     return $self->_get_context(para => 1);
+}
+
+=head2 ->first_sentence
+
+Returns the first original sentence of the message
+
+=cut
+
+sub first_sentence {
+    my $self = shift;
+    my $text = $self->first_paragraph();
+    $text =~ s/([.?!]).*/$1/s;
+    return $text;
 }
 
 sub _get_context {

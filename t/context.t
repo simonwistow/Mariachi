@@ -1,43 +1,91 @@
 #!perl -w
 use strict;
-use Test::More tests => 6;
+use Test::More;
+use FindBin;
+use File::Spec::Functions;
+
+# right, how does this work?
+
+# There are a bunch of messages in testmess, each ending in .message
+# For each of these messages there are several test files that represent
+# what should be returned by the various first functions.
+#
+#  foo.message       - should be the message
+#  foo.paragraph     - the first original paragraph of the message
+#  foo.sentence      - the first original sentence of the message
+#  foo.line          - the first two original lines of the message
+#
+# each of these files can be terminated by a __END__ - everything after
+# this will be ignored.  Note that unlike Perl's __END__ this can happen
+# in the middle of a line and doens't require a line to iteself.
+
+# Read in the files we're going to test:
+
+opendir DIRHANDLE, catdir($FindBin::Bin, "testmess")
+ or die "Can't open testdir: $!";
+
+my @files;
+foreach my $file (readdir DIRHANDLE)
+{
+  next unless $file =~ /\.message$/;
+  $file =~ s/.message$//;
+  push @files, $file;
+}
+
+close DIRHANDLE;
+
+# print out the number of tests we're going to run
+plan tests => 1 + @files*4;
+
+# load the Mariachi message module
 use_ok('Mariachi::Message');
 
-my $m = Mariachi::Message->new(<<'MAIL');
-To: Marty McFly <marty@mcfly.org>
-From: Doc Brown <brown@madinventors.org>
-Subject: Delorean
+# process each of the messages
+foreach my $file (@files)
+{
+  my $m = Mariachi::Message->new(slurp("$file.message"));
 
-On Wednesday, 5th of March, Marty McFly said
-> Wait a minute, Doc. Ah... Are you telling me you built a time machine
-> ... out of a DeLorean?  
+  isa_ok($m, 'Mariachi::Message', "message '$file' loaded");
 
-The way I see it, if you're gonna build a time machine into a car, why 
-not do it with some style? 
-MAIL
+  SKIP:
+  {
+    skip "No .paragraph", 1
+     unless -e catfile($FindBin::Bin,"testmess","$file.paragraph");
+    is $m->first_paragraph, slurp("$file.paragraph"),
+       "message '$file' paragraph";
+  }
 
-isa_ok( $m, 'Mariachi::Message' );
+  SKIP:
+  {
+    skip "No .lines", 1
+     unless -e catfile($FindBin::Bin,"testmess","$file.lines");
+    is $m->first_lines(2), slurp("$file.lines"),
+       "message '$file' lines";
+  }
 
-is($m->first_lines(),"The way I see it, if you're gonna build a time machine into a car, why ");
-is($m->first_lines(2),"The way I see it, if you're gonna build a time machine into a car, why \nnot do it with some style? ");
+  SKIP:
+  {
+    skip "No .sentence", 1
+     unless -e catfile($FindBin::Bin,"testmess","$file.sentence");
+    is $m->first_sentence, slurp("$file.sentence"),
+       "message '$file' sentence";
+  }
 
+}
 
-my $m2 = Mariachi::Message->new(<<'MAIL');
-From: sam.baines@hillvalley.com
-To: stella.baines@hillvalley.com
-Date: z
+# load in an entire file, forget the bits after __END__
+sub slurp
+{
+  # get the filename
+  my $filename = catfile($FindBin::Bin,"testmess",shift);
 
-On Thursday, 6th of March, Stella Baines said
-> He's a very strange man
+  # load that file's content into $file
+  local $/ = undef;
+  open FH, "<$filename"
+   or die "Couldn't open '$filename': $!";
+  my $file = <FH>;
 
-He's an idiot. Comes from upbringing. His parents are 
-probably idiots too. Lorraine, if you ever have a kid 
-that acts that way I'll disown you.
-
--- 
-But we do have a sig
-MAIL
-
-is($m2->first_lines(2),"He's an idiot. Comes from upbringing. His parents are \nprobably idiots too. Lorraine, if you ever have a kid ");
-is($m2->first_para(),"He's an idiot. Comes from upbringing. His parents are \nprobably idiots too. Lorraine, if you ever have a kid \nthat acts that way I'll disown you.");
-
+  # get rid of bits after __END__ and return
+  $file =~ s/__END__.*$//s;
+  return $file;
+}
