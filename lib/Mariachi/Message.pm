@@ -1,6 +1,6 @@
 use strict;
 package Mariachi::Message;
-use Email::Simple;
+use Email::MIME;
 use Digest::MD5 qw(md5_hex);
 use Date::Parse qw(str2time);
 use Text::Original ();
@@ -30,13 +30,25 @@ sub new {
     my $source = shift;
 
     my $self = $class->SUPER::new;
-    my $mail = Email::Simple->new($source) or return;
+    my $mail = Email::MIME->new($source) or return;
 
     $self->linked({});
     $self->_header({});
     $self->header_set( $_, $mail->header($_) ) for
       qw( message-id from subject date references in-reply-to );
-    $self->body( $mail->body );
+
+    # gather up the text/plain chunks for now - later we may want to
+    # save the non-html attachments and present them in some way
+    my $body;
+    for ($mail->parts) {
+        if ($_->content_type =~ m{^text/plain\b}) {
+            $body .= $_->body;
+        }
+        else {
+            $body .= "[ detached attachment " . $_->filename . " ]\n";
+        }
+    }
+    $self->body( $body );
 
     $self->header_set('message-id', $self->_make_fake_id)
       unless $self->header('message-id');
