@@ -10,11 +10,28 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.1;
 
-__PACKAGE__->mk_accessors( qw( messages threader input output threads_per_page list_title) );
+__PACKAGE__->mk_accessors( qw( messages threader input output
+                               threads_per_page list_title
+                               start_time last_time ) );
 
 sub new {
     my $class = shift;
     $class->SUPER::new({@_});
+}
+
+sub _bench {
+    my $self = shift;
+    my $message = shift;
+
+    my $now = [gettimeofday];
+    my $start = $self->start_time;
+    my $last  = $self->last_time || $now;
+    $start = $self->start_time($now) unless $start;
+
+    printf "%-20s elapsed %.3f total %.3f\n",
+      $message, tv_interval( $last, $now ), tv_interval( $start, $now );
+
+    $self->last_time($now);
 }
 
 sub load_messages {
@@ -206,25 +223,22 @@ sub generate {
 sub perform {
     my $self = shift;
 
-    my $start = [gettimeofday];
+    $self->_bench("startup");
 
     $self->load_messages;
+    $self->_bench("load");
     $self->sanitise_messages;
-
-    print "messages loaded in ",
-      tv_interval( $start )," seconds\n";
-    $start = [gettimeofday];
+    $self->_bench("sanitise");
 
     $self->thread;
+    $self->_bench("thread");
     $self->order;
+    $self->_bench("order");
     #$self->thread_check;
-
-    print "and threaded in ", tv_interval( $start ), " seconds\n";
-    $start = [gettimeofday];
+    #$self->_bench("sanity");
 
     $self->generate;
-
-    print "output generation took ", tv_interval( $start ), " seconds\n";
+    $self->_bench("generate");
 }
 
 
