@@ -119,7 +119,7 @@ sub strand {
     my $sub = sub {
         my ($cont, $depth) = @_;
 
-        push @toodeep, $cont if $depth && $depth % 12 == 0;
+        push @toodeep, $cont if ($depth && $depth % 8 == 0);
         my $mail = $cont->message or return;
         $prev->next($mail) if $prev;
         $prev = $mail;
@@ -133,7 +133,9 @@ sub strand {
     for (@toodeep) {
         if ($_->child) {
             # this is kinda wrong
-            push @{ $self->threader->{rootset} }, $_->child;
+            my $new =  Mail::Thread::Container->new('dummy');
+            push @{ $self->threader->{rootset} }, $new;
+            $new->child($_->child);
             $_->child->parent(undef);
             $_->child(undef);
         }
@@ -162,7 +164,7 @@ sub generate {
         for my $root (@chunk) {
             my $sub;
             $sub = sub {
-                my $c = shift;
+                my $c = shift or return;
 
                 if (my $mail = $c->message) {
                     # let the message know where it's linked from, and
@@ -183,8 +185,8 @@ sub generate {
                     push @{ $dates{ $mail->month } }, $mail;
                     push @{ $dates{ $mail->day } }, $mail;
                 }
-                $sub->($c->child) if $c->child;
-                $sub->($c->next)  if $c->next;
+                $sub->($c->child);
+                $sub->($c->next);
             };
             $sub->($root);
             undef $sub; # since we closed over ourself, we'll have to
@@ -252,8 +254,8 @@ sub perform {
 
     $self->load_messages;
     $self->_bench("load");
-    $self->sanitise_messages;
-    $self->_bench("sanitise");
+    #$self->sanitise_messages;
+    #$self->_bench("sanitise");
 
     $self->thread;
     $self->_bench("thread");
