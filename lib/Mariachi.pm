@@ -9,7 +9,7 @@ use File::Copy qw( copy move );
 use File::Find::Rule;
 use File::Basename;
 use base qw( Class::Accessor::Fast );
-our $VERSION = '0.51';
+our $VERSION = '0.52';
 
 __PACKAGE__->mk_accessors( qw( config messages rootset
                                start_time last_time tt ) );
@@ -203,7 +203,7 @@ sub order {
     @rootset = sort {
         $b->topmost->message->epoch_date <=> $a->topmost->message->epoch_date
     } @rootset;
-    
+
     # And optionally reverse the order
     @rootset = reverse(@rootset)
       if $self->config->reverse;
