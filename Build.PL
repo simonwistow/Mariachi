@@ -13,6 +13,8 @@ Module::Build
                           'Template'        => 0,
                           'Date::Parse'     => 0,
                           'Class::Accessor' => 0,
+						  'Email::Find'     => 0,
+						  'URI::Find::Schemeless::Stricter' => 0,
                          },
          sign         => 1,
        )
