@@ -74,11 +74,15 @@ print "output generation took ", tv_interval( $start ), " seconds\n";
 
 exit 0;
 
+# given a message, find the root of the thread that it's in
 sub find_root_thread {
     my $self = shift;
     my $mail = shift;
+    my $id   = $self->_msgid($mail);
     for my $cont ($self->rootset) {
-        return $cont if $cont->find_message_id( $self->_msgid($mail) );
+        my $in;
+        $cont->recurse_down( sub { $_[0]->messageid eq $id and $in = 1 } );
+        return $cont if $in;
     }
 }
 
@@ -121,21 +125,6 @@ sub order_children {
         $walk = $walk->next( shift @neworder );
     }
     $walk->next(undef) if $walk;
-}
-
-
-sub find_message_id {
-    my $self = shift;
-    my $id = shift;
-
-    return $self if $self->messageid eq $id;
-    for ( qw( child next ) ) {
-        my $next = $self->$_();
-        next unless $next;
-        $next = $next->find_message_id($id);
-        return $next if $next;
-    }
-    return;
 }
 
 package Message;
