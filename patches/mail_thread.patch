@@ -40,7 +40,7 @@ diff -urN Mail-Thread-2.1/MANIFEST Mail-Thread-2.1_richardc/MANIFEST
 +t/testbox-9
 diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 --- Mail-Thread-2.1/Thread.pm	2003-03-31 12:08:58.000000000 +0100
-+++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-16 13:33:11.000000000 +0100
++++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-27 14:41:41.000000000 +0100
 @@ -2,10 +2,10 @@
  
  use 5.00503;
@@ -189,7 +189,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +        my $fakeroot = $self->_container_class->new( 'fakeroot' );
 +        $fakeroot->set_children( $self->rootset );
 +        $self->_prune_empties($fakeroot, 0);
-+        my @kids = @{$self->{rootset}} = $fakeroot->children; 
++        my @kids = @{$self->{rootset}} = $fakeroot->children;
 +        for (@kids) {
 +            $_->parent(undef);
 +            $_->next(undef);
@@ -233,24 +233,9 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 -        debug " "x$level;
 -        debug "Removing child ".$ctr->messageid."\n";
 -        $ctr->remove_child($ctr);
--    }
--
--    debug " "x$level;
--    debug "Adding children @new_children\n";
--    $cont->add_child($_) for @new_children;
--    if (!$cont->message and !$cont->children) {
--        debug " "x$level;
--        debug "No message and no children - killing\n";
--        return ();
--    }
--    my @children = $cont->children;
--    if (!$cont->message and @children == 1 and $cont->parent) {
--        debug "Promoting the child of ".$cont->messageid."\n";
--        $cont->remove_child($_) for @children;
--        return @children;
 +    my ($walk, $prev, $next);
-+    for ($walk = $cont->child, $next = eval { $walk->next }; 
-+         $walk; 
++    for ($walk = $cont->child, $next = eval { $walk->next };
++         $walk;
 +         $prev = $walk, $walk = $next, $next = eval { $walk->next } ) {
 +
 +       my @children = $walk->children;
@@ -264,7 +249,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +           $walk = $prev;
 +           next;
 +       }
-+        
++
 +       if (!$walk->message and @children and (@children == 1 or $walk->parent)) {
 +           debug "Promoting the children\n";
 +           my $kids = $walk->child;
@@ -284,9 +269,24 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +           $self->_prune_empties($walk, $level + 1);
 +       }
      }
--    return $cont;
- }   
++}
  
+-    debug " "x$level;
+-    debug "Adding children @new_children\n";
+-    $cont->add_child($_) for @new_children;
+-    if (!$cont->message and !$cont->children) {
+-        debug " "x$level;
+-        debug "No message and no children - killing\n";
+-        return ();
+-    }
+-    my @children = $cont->children;
+-    if (!$cont->message and @children == 1 and $cont->parent) {
+-        debug "Promoting the child of ".$cont->messageid."\n";
+-        $cont->remove_child($_) for @children;
+-        return @children;
+-    }
+-    return $cont;
+-}   
 +sub order {
 +    my $self = shift;
 +    my $ordersub = shift;
@@ -294,15 +294,15 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +    # make a fake root
 +    my $root = $self->_container_class->new( 'fakeroot' );
 +    $root->set_children( $self->rootset );
-+    
++
 +    # sort it
 +    $root->order_children( $ordersub );
-+     
++
 +    # and untangle it
 +    @{$self->{rootset}} = $root->children;
 +    $_->next(undef) for $root->children;
 +}
-+
+ 
  package Mail::Thread::Container;
  use Carp qw(carp confess croak cluck);
  
@@ -343,7 +343,20 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  
  sub add_child {
      my ($self, $child) = @_;
-@@ -245,6 +398,30 @@
+@@ -217,10 +370,10 @@
+     my $x = $self->child;
+     my $prev = $x;
+     while ($x = $x->next) {
+-        if ($x == $child) { 
++        if ($x == $child) {
+             $prev->next($x->next); # Unlink x
+             $x->parent(undef);     # Deparent it
+-            return; 
++            return;
+         }
+         $prev = $x;
+     }
+@@ -245,27 +398,70 @@
      return @children;
  }
  
@@ -358,35 +371,69 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +sub order_children {
 +    my $self = shift;
 +    my $ordersub = shift;
-+    
++
 +    return unless $ordersub;
 +
-+    # go depth first
-+    eval { $self->child->order_children($ordersub) };
-+    eval { $self->next->order_children($ordersub) };
-+
-+    my @children = $self->children;
-+    return if @children < 2;
-+
-+    $self->set_children( $ordersub->( @children ) );
++    my $sub = sub {
++        my $cont = shift;
++        my @children = $cont->children;
++        return if @children < 2;
++        $cont->set_children( $ordersub->( @children ) );
++    };
++    $self->iterate_down( undef, $sub );
++    undef $sub;
 +}
 +
  sub recurse_down {
++    my $self = shift;
++    my $callback = shift;
++    $self->iterate_down($callback);
++}
++
++sub iterate_down {
++    my $self = shift;
++    my ($before, $after) = @_;
++
++    my $next;
++    my $depth = 0;
      my %seen;
-     my $do_it_all;
-@@ -254,9 +431,9 @@
-         $seen{$self}++;
-         $callback->($self);
- 
+-    my $do_it_all;
+-    $do_it_all = sub {
+-        my $self = shift;
+-        my $callback = shift;
+-        $seen{$self}++;
+-        $callback->($self);
+-
 -        if ($seen{$self->next}) { $self->next(undef) }
-+        if ($self->next && $seen{$self->next}) { $self->next(undef) }
-         $do_it_all->($self->next, $callback)  if $self->next;
+-        $do_it_all->($self->next, $callback)  if $self->next;
 -        if ($seen{$self->child}) { $self->child(undef) }
-+        if ($self->child && $seen{$self->child}) { $self->child(undef) }
-         $do_it_all->($self->child, $callback) if $self->child;
+-        $do_it_all->($self->child, $callback) if $self->child;
++    for (my $walk = $self; $walk; $walk = $next) {
++        $before->($walk, $depth) if $before;
  
-     };
-@@ -265,7 +442,6 @@
+-    };
+-    $do_it_all->(@_);
++        # spot/break loops
++        $seen{$walk}++;
++        $walk->child(undef) if $seen{ $walk->child || '' };
++        $walk->next(undef)  if $seen{ $walk->next  || '' };
++
++        # go down, or across
++        if ($walk->child) { $next = $walk->child; ++$depth }
++        else              { $next = $walk->next }
++
++        # no next?  wander back up
++        if (!$next) {
++            while ($depth) {
++                $next = eval { $walk->parent->next };
++                $after->($walk, $depth) if $after;
++                --$depth;
++                last if $next;
++            }
++        }
++    }
++    $after->($self, 0) if $after;
+ }
  
  1;
  __END__
@@ -394,7 +441,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  
  =head1 NAME
  
-@@ -282,7 +458,7 @@
+@@ -282,7 +478,7 @@
  
      sub dump_em {
          my ($self, $level) = @_;
@@ -403,7 +450,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          if ($self->message) {
              print $self->message->head->get("Subject") , "\n";
          } else {
-@@ -298,8 +474,6 @@
+@@ -298,8 +494,6 @@
  threading algorithm, as described by http://www.jwz.org/doc/threading.html.
  Any deviations from the algorithm are accidental.
  
@@ -412,7 +459,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  It's happy to be handed C<Mail::Internet> and C<Mail::Box::Message> objects,
  since they're more or less the same, but nothing other than that.
  
-@@ -318,6 +492,10 @@
+@@ -318,6 +512,10 @@
  Returns a list of C<Mail::Thread::Container>s which are not the parents
  of any other message.
  
@@ -423,7 +470,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head1 C<Mail::Thread::Container> methods
  
  C<Mail::Thread::Container>s are the nodes of the thread tree. You can't just
-@@ -343,12 +521,24 @@
+@@ -343,12 +541,24 @@
  
  Returns the message held in this container, if we have one.
  
@@ -449,7 +496,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head2 has_descendent($child)
  
  Returns true if this container has the given container as a child somewhere
-@@ -366,6 +556,28 @@
+@@ -366,6 +576,28 @@
  
  Returns a list of the B<immediate> children of this container.
  
@@ -461,7 +508,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +
 +Recursively reorders children according to the results of $ordering_sub
 +
-+$ordering_sub is called with the containers children, and is expected to 
++$ordering_sub is called with the containers children, and is expected to
 +return them in their new order.
 +
 + # order by subject line
@@ -471,13 +518,21 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +
 +$ordering_sub may be omitted, in which case no ordering takes place
 +
-+=head2 topmost 
++=head2 topmost
 +
 +Walks the tree to return the topmost container with a message attached
 +
  =head2 recurse_down($callback)
  
  Calls the given callback on this node and B<all> of its children.
+@@ -379,6 +611,6 @@
+ Copyright 2003 by Kasei
+ 
+ This library is free software; you can redistribute it and/or modify
+-it under the same terms as Perl itself. 
++it under the same terms as Perl itself.
+ 
+ =cut
 diff -urN Mail-Thread-2.1/t/1.t Mail-Thread-2.1_richardc/t/1.t
 --- Mail-Thread-2.1/t/1.t	2003-03-10 13:06:56.000000000 +0000
 +++ Mail-Thread-2.1_richardc/t/1.t	2003-04-22 12:33:38.000000000 +0100
