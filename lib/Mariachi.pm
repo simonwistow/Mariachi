@@ -336,22 +336,32 @@ sub split_deep {
     }
 }
 
-=head2 ->generate_lurker
+
+=head2 ->copy_files
+
+copy files into the output dir
 
 =cut
 
-sub generate_lurker {
-    my $self = shift;
+sub copy_files {
 
-    my $l = Mariachi::Lurker->new;
-    $self->generate_pages(
-        'lurker.tt2', 'lurker.html',
-        content => [
-            map { [ $l->arrange( $_ ) ] } @{ $self->rootset }
-           ],
-        perpage    => 10,
+}
+
+
+=head2 init_tt
+
+=cut
+
+sub init_tt {
+    my $self = shift;
+    $self->tt(
+        Template->new(
+            INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
+            RECURSION => 1
+           )
        );
 }
+
 
 =head2 generate_pages( $template, $filename, %data )
 
@@ -385,53 +395,58 @@ sub generate_pages {
             $self->output . "/$$.tmp" )
           or die $self->tt->error;
 
-        print "$$.tmp -> $file\n";
+        print STDERR "\r$$.tmp -> $file";
         mkpath dirname $self->output . "/$file";
         rename $self->output . "/$$.tmp", $self->output . "/$file"
           or die "$!";
     } while $again;
+    print STDERR "\n";
 }
 
 
-=head2 ->copy_files
-
-copy files into the output dir
+=head2 ->generate_lurker_index
 
 =cut
 
-sub copy_files {
-
-}
-
-=head2 init_tt2
-
-=cut
-
-sub init_tt {
+sub generate_lurker {
     my $self = shift;
-    $self->tt(
-        Template->new(
-            INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
-            RECURSION => 1
-           )
+
+    my $l = Mariachi::Lurker->new;
+    $self->generate_pages(
+        'lurker.tt2', 'lurker.html',
+        content => [
+            map { [ $l->arrange( $_ ) ] } @{ $self->rootset }
+           ],
+        perpage    => 10,
        );
 }
 
-=head2 ->generate
 
-render thread tree into the directory of C<output>
+=head2 ->generate_thread_index
 
 =cut
 
-# XXX this seems to have just passed the stage of being too big
-sub generate {
+sub generate_thread {
     my $self = shift;
 
-    my @threads = @{ $self->rootset };
-    my $page = 0;
-    my %touched_threads;
+    $self->generate_pages(
+        'index.tt2', 'index.html',
+        content => $self->rootset,
+        perpage => $self->threads_per_page,
+    );
+}
+
+
+=head2 ->generate_date
+
+=cut
+
+sub generate_date {
+    my $self = shift;
+
     my %touched_dates;
     my %dates;
+
     # wander things to find dirty threads, and dates
     for my $root (@{ $self->rootset }) {
         my $sub;
@@ -441,7 +456,6 @@ sub generate {
             if (my $mail = $c->message) {
                 # mark the thread dirty, if the message is new
                 unless (-e $self->output."/".$mail->filename) {
-                    $touched_threads{ $root } = $root;
                     # dirty up the date indexes
                     $touched_dates{ $mail->year } = 1;
                     $touched_dates{ $mail->month } = 1;
@@ -458,13 +472,6 @@ sub generate {
         undef $sub; # since we closed over ourself, we'll have to be specific
     }
 
-    $self->generate_pages(
-        'index.tt2', 'index.html',
-        content => $self->rootset,
-        perpage => $self->threads_per_page,
-    );
-    $self->_bench("thread indexes");
-
     for ( keys %touched_dates ) {
         my @mails = sort {
             $a->epoch_date <=> $b->epoch_date
@@ -478,10 +485,36 @@ sub generate {
                                perpage      => 20,
                               );
     }
-    $self->_bench("date indexes");
+}
+
+=head2 ->generate_bodies
+
+render thread tree into the directory of C<output>
+
+=cut
+
+sub generate_bodies {
+    my $self = shift;
+
+    my %touched_threads;
+    # wander things to find dirty threads
+    for my $root (@{ $self->rootset }) {
+        my $sub;
+        $sub = sub {
+            my $c = shift or return;
+
+            if (my $mail = $c->message) {
+                # mark the thread dirty, if the message is new
+                $touched_threads{ $root } = $root
+                  unless -e $self->output."/".$mail->filename;
+            }
+        };
+        $root->iterate_down($sub);
+        undef $sub; # since we closed over ourself, we'll have to be specific
+    }
 
     # figure out adjacent dirty threads
-    @threads = @{ $self->rootset };
+    my @threads = @{ $self->rootset };
     for my $i (grep { $touched_threads{ $threads[$_] } } 0..$#threads) {
         $touched_threads{ $threads[$i-1] } = $threads[$i-1] if $i > 0;
         $touched_threads{ $threads[$i+1] } = $threads[$i+1] if $i+1 < @threads;
@@ -509,8 +542,6 @@ sub generate {
         undef $sub;
     }
     print STDERR "\n";
-
-    $self->_bench("message bodies");
 }
 
 =head2 ->perform
@@ -537,7 +568,9 @@ sub perform {
     $self->split_deep;      $self->_bench("deep threads split up");
     $self->sanity;          $self->_bench("sanity");
     $self->order;           $self->_bench("order");
-    $self->generate;        $self->_bench("generate");
+    $self->generate_thread; $self->_bench("regular thread indexes");
+    $self->generate_date;   $self->_bench("date indexes");
+    $self->generate_bodies; $self->_bench("messages");
 }
 
 package Mariachi::Folder;
