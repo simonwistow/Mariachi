@@ -1,0 +1,6 @@
+0.2.1 - lowercase filenames
+    
+Lowercase file names for aesthetic reasons. This will break existing
+installations but, hey, it's a 0.2.x release and our existing user base 
+is practically zero.
+
