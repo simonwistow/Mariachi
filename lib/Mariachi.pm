@@ -133,6 +133,7 @@ sub dedupe {
     my $self = shift;
 
     my (%seen, @new, $dropped);
+    $dropped = 0;
     for my $mail (@{ $self->messages }) {
         my $msgid = $mail->header('message-id');
         if ($seen{$msgid}++) {
@@ -304,7 +305,7 @@ sub split_deep {
             my ($cont, $depth) = @_;
 
             # only note first entries
-            if ($depth && ($depth % 14 == 0)
+            if ($depth && ($depth % 6 == 0)
                 && $cont->parent->child == $cont) {
                 push @toodeep, $cont;
             }
@@ -471,6 +472,7 @@ sub perform {
     $self->strand;          $self->_bench("strand");
     $self->split_deep;      $self->_bench("deep threads split up");
     $self->sanity;          $self->_bench("sanity");
+    $self->order;           $self->_bench("order");
     $self->generate;        $self->_bench("generate");
 }
 
