@@ -110,7 +110,9 @@ sub generate {
                              $last_message_in_thread = $mail unless $next;
 
                              $touched_threads{ $_ } = $_
-                               unless -e $self->output."/".$mail->filename;
+                               if ((!-e $self->output."/".$mail->filename)
+                               or ($mail->next and !-e $self->output."/".$mail->next)
+                               or ($mail->last and !-e $self->output."/".$mail->last));
                          })
           for @chunk;
 
