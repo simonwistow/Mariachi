@@ -105,7 +105,9 @@ sub generate {
     }
 
     warn "Message pages\n";
+    my $count = 0;
     for my $mail (@{ $self->messages }) {
+        warn "$count\n" if ++$count % 20 == 0;
         $tt->process('message.tt2',
                      { thread  => $self->_find_root_thread($mail),
                        message => $mail,
