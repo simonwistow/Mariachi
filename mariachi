@@ -3,6 +3,8 @@ use strict;
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper;
+use Date::Parse qw(str2time);
+
 use Mariachi::Folder;
 
 my $start = [gettimeofday];
@@ -35,7 +37,12 @@ $start = [gettimeofday];
 my $threader = Email::Thread::Mariachi->new( @mails );
 $threader->thread;
 
-$_->order_children for $threader->rootset;
+my %date;
+$threader->order( sub {
+                      # cache the dates
+                      $date{$_} = str2time $_->topmost->message->date for @_;
+                      sort { $date{$a} <=> $date{$b} } @_;
+                  });
 
 # Mail::Thread (in)sanity test
 if (1) {
@@ -53,7 +60,7 @@ my $tt = Template->new( RECURSION => 1 );
 
 
 $tt->process('index.tt2',
-             { threads => [ $threader->sorted_rootset ] },
+             { threads => [ $threader->rootset ] },
              "$output/index.html") or die $tt->error;
 
 # tt (in) sanity test
@@ -92,40 +99,47 @@ sub find_root_thread {
 package Email::Thread::Mariachi;
 use Email::Thread (); # Ensure the module is actually installed and loaded.
 use base 'Email::Thread';
-use Date::Parse qw(str2time);
 
 sub _container_class { "Email::Thread::Container::Mariachi" }
 
-sub sorted_rootset {
+sub order {
     my $self = shift;
-    _sort( $self->rootset );
-}
+    my $ordersub = shift;
 
-sub _sort {
-    return map {
-        $_->[0]
-    } sort {
-        $a->[1] <=> $b->[1]
-    } map {
-        [ $_ => eval { str2time $_->topmost->message->date } || 0 ]
-    } @_;
+    # make a fake root
+    my $root = $self->_container_class->new( 'fakeroot' );
+    $root->child( ($self->rootset)[0] );
+    $root->set_children( $self->rootset );
+
+    use Data::Dumper;
+    # sort it
+    $root->order_children( $ordersub );
+
+    # and untangle it
+    @{$self->{rootset}} = $root->children;
+    for ($root->children) {
+        $_->parent(undef);
+        $_->next(undef);
+    }
 }
 
 package Email::Thread::Container::Mariachi;
 use base 'Email::Thread::Container';
 
+sub _order_subject {
+    sort { $a->topmost->subject cmp $b->topmost->subject } @_
+}
+
 sub order_children {
     my $self = shift;
-
+    my $ordersub = shift || \&_order_subject;
+    use Data::Dumper;
     # go depth first
-    eval { $self->child->order_children };
-    eval { $self->next->order_children };
+    eval { $self->child->order_children($ordersub) };
+    eval { $self->next->order_children($ordersub) };
 
     my @children = $self->children;
     return if @children < 2;
 
-    my @neworder = Email::Thread::Mariachi::_sort( @children );
-    my $walk = $self->child( shift @neworder );
-    while (@neworder) { $walk = $walk->next( shift @neworder ) }
-    $walk->next(undef) if $walk;
+    $self->set_children( $ordersub->( @children ) );
 }
