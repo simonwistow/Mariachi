@@ -19,12 +19,8 @@
 <b>Date:</b> [% date.format(message.epoch_date) %]<br />
 </div>
 
-<pre>[% message.body_sigless | html | mariachi  %]</pre><br/>
-
-[% IF message.sig %]
-<pre>--&nbsp;<br/><i>[% message.sig | html | mariachi %]</i></pre>
-[% END %]
-
+<pre>[% message.body_sigless | html | mariachi  %][% IF message.sig -%]
+-- <i>[% message.sig | html | mariachi %][% END %]</i></pre>
 
 [%# INCLUDE prevnext.tt2 %]
 [%
