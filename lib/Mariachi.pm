@@ -79,6 +79,7 @@ sub generate {
     my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my %touched_threads;
+    my $last_message_in_thread;
     while (@threads) {
         # @chunk is the chunk of threads on this page
         my @chunk = splice(@threads, 0, $self->threads_per_page);
@@ -98,6 +99,13 @@ sub generate {
                                  }
                                  $mail->next($next->message) if $next;
                                  $next->message->last($mail) if $next;
+
+                                 if ($last_message_in_thread) {
+                                     $last_message_in_thread->next($mail);
+                                     $mail->last($last_message_in_thread);
+                                     undef $last_message_in_thread;
+                                 }
+                                 $last_message_in_thread = $mail unless $next;
 
                                  $touched_threads{ $_ } = $_
                                    unless -e $self->output."/".$mail->filename;
