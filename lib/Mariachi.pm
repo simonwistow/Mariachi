@@ -100,11 +100,22 @@ sub thread_check {
       if %mails;
 }
 
+# okay, so we want to walk the containers in the following order,
+# so that Message->next and Message->prev are easy to find
+#
+# -- 1
+#    |-- 2
+#    |-- 3
+#    |   \-- 4
+#    |-- 5
+#    \-- 6
+# -- 7
+# I hate ascii art
+
 sub strand {
     my $self = shift;
 
-    my $prev;
-    my @toodeep;
+    my (@toodeep, $prev);
     my $sub = sub {
         my ($cont, $depth) = @_;
 
@@ -117,25 +128,22 @@ sub strand {
 
     $_->iterate_down( $sub ) for $self->threader->rootset;
     undef $sub;
-    warn Dumper [ map { "$_" } @toodeep ];
+
+    # untangle things too deep
+    for (@toodeep) {
+        if ($_->child) {
+            # this is kinda wrong
+            push @{ $self->threader->{rootset} }, $_->child;
+            $_->child->parent(undef);
+            $_->child(undef);
+        }
+    }
 }
 
 sub generate {
     my $self = shift;
 
     my $tt = Template->new( INCLUDE_PATH => 'templates', RECURSION => 1 );
-
-    # okay, so we want to walk the containers in the following order,
-    # so that Message->next and Message->prev are easy to find
-    #
-    # -- 1
-    #    |-- 2
-    #    |-- 3
-    #    |   \-- 4
-    #    |-- 5
-    #    \-- 6
-    # -- 7
-    # I hate ascii art
 
     # we actually want the root set to be ordered latest first
     my @threads = sort {
