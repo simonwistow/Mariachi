@@ -7,31 +7,21 @@ use Date::Parse qw(str2time);
 use Text::Original ();
 use Memoize;
 
-use base qw(Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( body _header next prev root
-                              epoch_date day month year ymd linked
-                            ));
+use base 'Mariachi::DBI';
+__PACKAGE__->set_up_later(
+    rawmail    => 'Email::Simple',
+    body       => '',
+    epoch_date => '',
+   );
+__PACKAGE__->add_trigger( before_create => \&pre_create );
 
-=head1 NAME
+# copy things out of the email::simple message and into the columns
+sub pre_create {
+    my $data = shift;
+    warn "pre_create";
+}
 
-Mariachi::Message - representation of a mail message
-
-=head1 METHODS
-
-=head2 ->new($message)
-
-C<$message> is a rfc2822 compliant message body
-
-your standard constructor
-
-=cut
-
-sub new {
-    my $class = shift;
-    my $source = shift;
-
-    my $self = $class->SUPER::new;
-    my $mail = Email::Simple->new($source) or return;
+=for later
 
     $self->linked({});
     $self->_header({});
@@ -53,6 +43,25 @@ sub new {
     $self->year(  sprintf "%04d", @ymd );
 
     return $self;
+
+}
+
+=head1 NAME
+
+Mariachi::Message - representation of a mail message
+
+=head1 METHODS
+
+=head2 ->new($message)
+
+C<$message> is a rfc2822 compliant message body
+
+your standard constructor
+
+=cut
+
+sub new {
+    die "don't look at me";
 }
 
 
