@@ -16,7 +16,7 @@
 %]
 
 [% FOREACH root = page.splice(content) %]
-<h2>[% root.0.0.topmost.message.subject | html%]</h2>
+<h2>[% root.0.0.topmost.message.subject | html | mariachi %]</h2>
 <table border="0" cellpadding="0" cellspacing="0" width="100%">[% y = 0 %]
     [% FOREACH row = root %]
         [% y = loop.count %] 
