@@ -40,7 +40,7 @@ diff -urN Mail-Thread-2.1/MANIFEST Mail-Thread-2.1_richardc/MANIFEST
 +t/testbox-9
 diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 --- Mail-Thread-2.1/Thread.pm	2003-03-31 12:08:58.000000000 +0100
-+++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-15 22:37:18.000000000 +0100
++++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-16 13:33:11.000000000 +0100
 @@ -2,10 +2,10 @@
  
  use 5.00503;
@@ -79,7 +79,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
      $id =~ s/^<([^>]+)>.*/$1/; # We expect this not to have <>s
      return $id;
  }
-@@ -59,16 +62,113 @@
+@@ -59,16 +62,118 @@
      }
  }
  
@@ -169,9 +169,12 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +    }
 +
 +    # repopulate the rootset from our fake one
-+    @{$self->{rootset}} = $root->children;
-+    $_->parent(undef) for $root->children;
-+    $_->next(undef) for $root->children;
++    my @kids = $root->children;
++    @{$self->{rootset}} = @kids;
++    for (@kids) {
++        $_->parent(undef);
++        $_->next(undef);
++    }
 +}
 +
  sub thread {
@@ -186,9 +189,11 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +        my $fakeroot = $self->_container_class->new( 'fakeroot' );
 +        $fakeroot->set_children( $self->rootset );
 +        $self->_prune_empties($fakeroot, 0);
-+        @{$self->{rootset}} = $fakeroot->children; 
-+        $_->parent(undef) for $self->rootset;
-+        $_->next(undef) for $self->rootset;
++        my @kids = @{$self->{rootset}} = $fakeroot->children; 
++        for (@kids) {
++            $_->parent(undef);
++            $_->next(undef);
++        }
 +    }
      delete $self->{seen};
 -    #$self->_group_set_bysubject();
@@ -196,7 +201,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
      $self->_finish();
  }
  
-@@ -87,9 +187,7 @@
+@@ -87,9 +192,7 @@
          $cont= $self->_container_class->new($id);
          $self->{id_table}{$id} = $cont;
      }
@@ -206,7 +211,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  }
  
  sub _container_class { "Mail::Thread::Container" }
-@@ -118,7 +216,7 @@
+@@ -118,7 +221,7 @@
          }
          if (defined $prev) { $prev->add_child($this_container) }
          debug "Done with this message!\n----\n";
@@ -215,7 +220,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
              _dump( values %{$self->{id_table}} );
          }
      }
-@@ -138,45 +236,95 @@
+@@ -138,45 +241,95 @@
      debug " "x$level;
      debug "Looking at ".$cont->messageid."\n";
  
@@ -295,7 +300,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +     
 +    # and untangle it
 +    @{$self->{rootset}} = $root->children;
-+    $_->next for $root->children;
++    $_->next(undef) for $root->children;
 +}
 +
  package Mail::Thread::Container;
@@ -338,7 +343,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  
  sub add_child {
      my ($self, $child) = @_;
-@@ -245,6 +393,30 @@
+@@ -245,6 +398,30 @@
      return @children;
  }
  
@@ -369,7 +374,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  sub recurse_down {
      my %seen;
      my $do_it_all;
-@@ -254,9 +426,9 @@
+@@ -254,9 +431,9 @@
          $seen{$self}++;
          $callback->($self);
  
@@ -381,7 +386,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          $do_it_all->($self->child, $callback) if $self->child;
  
      };
-@@ -265,7 +437,6 @@
+@@ -265,7 +442,6 @@
  
  1;
  __END__
@@ -389,7 +394,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  
  =head1 NAME
  
-@@ -282,7 +453,7 @@
+@@ -282,7 +458,7 @@
  
      sub dump_em {
          my ($self, $level) = @_;
@@ -398,7 +403,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          if ($self->message) {
              print $self->message->head->get("Subject") , "\n";
          } else {
-@@ -298,8 +469,6 @@
+@@ -298,8 +474,6 @@
  threading algorithm, as described by http://www.jwz.org/doc/threading.html.
  Any deviations from the algorithm are accidental.
  
@@ -407,7 +412,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  It's happy to be handed C<Mail::Internet> and C<Mail::Box::Message> objects,
  since they're more or less the same, but nothing other than that.
  
-@@ -318,6 +487,10 @@
+@@ -318,6 +492,10 @@
  Returns a list of C<Mail::Thread::Container>s which are not the parents
  of any other message.
  
@@ -418,7 +423,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head1 C<Mail::Thread::Container> methods
  
  C<Mail::Thread::Container>s are the nodes of the thread tree. You can't just
-@@ -343,12 +516,24 @@
+@@ -343,12 +521,24 @@
  
  Returns the message held in this container, if we have one.
  
@@ -444,7 +449,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head2 has_descendent($child)
  
  Returns true if this container has the given container as a child somewhere
-@@ -366,6 +551,28 @@
+@@ -366,6 +556,28 @@
  
  Returns a list of the B<immediate> children of this container.
  
@@ -475,8 +480,8 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  Calls the given callback on this node and B<all> of its children.
 diff -urN Mail-Thread-2.1/t/1.t Mail-Thread-2.1_richardc/t/1.t
 --- Mail-Thread-2.1/t/1.t	2003-03-10 13:06:56.000000000 +0000
-+++ Mail-Thread-2.1_richardc/t/1.t	2003-04-15 20:27:15.000000000 +0100
-@@ -1,17 +1,13 @@
++++ Mail-Thread-2.1_richardc/t/1.t	2003-04-22 12:33:38.000000000 +0100
+@@ -1,23 +1,19 @@
 -BEGIN { eval "use Mail::Box::Manager;"; 
 -    if ($@) { require Test::More; Test::More->import(skip_all =>
 -        "You don't have Mail::Box::Manager"); exit; }
@@ -498,7 +503,14 @@ diff -urN Mail-Thread-2.1/t/1.t Mail-Thread-2.1_richardc/t/1.t
  $threader->thread;
  
  is($threader->rootset, 3, "We have three main threads");
-@@ -27,13 +23,13 @@
+ 
+ my @stuff;
+-for ($threader->rootset) {
++for (sort { $a->topmost->subject cmp $b->topmost->subject } $threader->rootset) {
+     dump_em($_, 0);
+ }
+ 
+@@ -27,24 +23,16 @@
          use Data::Dumper; die Dumper $self;
      }
      push @stuff, 
@@ -515,6 +527,34 @@ diff -urN Mail-Thread-2.1/t/1.t Mail-Thread-2.1_richardc/t/1.t
   [
            [
              0,
+-            '[rt-users] Configuration Problem'
+-          ],
+-          [
+-            1,
+-            'Re: [rt-users] Configuration Problem'
+-          ],
+-          [
+-            0,
+             '[ Message not available ]'
+           ],
+           [
+@@ -86,7 +74,15 @@
+           [
+             2,
+             'RE: [p5ml] Re: karie kahimi binge...help needed'
+-          ]
++          ],
++          [
++            0,
++            '[rt-users] Configuration Problem'
++          ],
++          [
++            1,
++            'Re: [rt-users] Configuration Problem'
++          ],
+         ]
+  , "It all works");
+ 
 diff -urN Mail-Thread-2.1/t/2.t Mail-Thread-2.1_richardc/t/2.t
 --- Mail-Thread-2.1/t/2.t	2003-03-11 15:02:53.000000000 +0000
 +++ Mail-Thread-2.1_richardc/t/2.t	2003-04-13 02:28:04.000000000 +0100
