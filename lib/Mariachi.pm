@@ -164,17 +164,13 @@ sub strand {
             my $root = $top->message->root
               or die "trying to handle something we didn't iterate over!!!".$top->message->header('message-id');
             if ($root->message) {
-                my $new = Mail::Thread::Container->new( $root->messageid );
-                $root->messageid( 'dummy' );
-                $new->parent( $root );
-                $new->message( $root->message );
-                $root->message( undef );
-                $new->child( $root->child );
-                $root->child( $new );
+                my $new = Mail::Thread::Container->new($root->messageid);
+                $root->messageid('dummy');
+                $new->child($root->child);
+                $root->child($new);
+                $root = $new;
             }
-            $_->child->parent($root);
-            $root->set_children( $_->child, $root->children );
-            $_->child(undef);
+            $root->add_child( $_->child );
         }
     }
 }
@@ -282,7 +278,6 @@ sub generate {
         };
         $root->recurse_down( $sub );
         undef $sub;
-        $self->_bench("message bodies $root");
     }
     $self->_bench("message bodies");
 }
