@@ -36,7 +36,6 @@ print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
 $start = [gettimeofday];
 
 my $threader = Email::Thread::Mariachi->new( @mails );
-$Mail::Thread::nosubject=1;  # arse, trees get too deep if we turn this on :(
 $threader->thread;
 
 $_->order_children for $threader->rootset;

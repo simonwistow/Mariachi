@@ -1,7 +1,6 @@
-Binary files Mail-Thread-2.1_richardc_sent/.Thread.pm.swp and Mail-Thread-2.1_richardc/.Thread.pm.swp differ
 diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 --- Mail-Thread-2.1_richardc_sent/Thread.pm	2003-04-12 20:58:07.000000000 +0100
-+++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-13 03:08:20.000000000 +0100
++++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-13 15:51:39.000000000 +0100
 @@ -2,7 +2,7 @@
  
  use 5.00503;
@@ -20,7 +19,7 @@ diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Threa
      my @references = ($class->_get_hdr($msg, "References") =~ /<([^>]+)>/g);
      my $foo = $class->_get_hdr($msg,"In-Reply-To");
      chomp $foo;
-@@ -62,14 +62,102 @@
+@@ -62,22 +62,113 @@
      }
  }
  
@@ -109,8 +108,10 @@ diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Threa
 +        $walk = $prev;
 +    }
 +
++    # repopulate the rootset from our fake one
 +    @{$self->{rootset}} = $root->children;
 +    $_->parent(undef) for $root->children;
++    $_->next(undef) for $root->children;
 +}
 +
  sub thread {
@@ -125,7 +126,8 @@ diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Threa
          my $fakeroot = $self->_container_class->new( 'fakeroot' );
          $fakeroot->set_children( $self->rootset );
          $self->_prune_empties($fakeroot, 0);
-@@ -77,7 +165,7 @@
+         @{$self->{rootset}} = $fakeroot->children; 
++        $_->parent(undef) for $self->rootset;
          $_->next(undef) for $self->rootset;
      }
      delete $self->{seen};
@@ -134,7 +136,7 @@ diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Threa
      $self->_finish();
  }
  
-@@ -159,7 +247,7 @@
+@@ -159,7 +250,7 @@
             if (!$prev) { $cont->child($walk->next) }
             else        { $prev->next($walk->next)  }
             $walk = $prev;
@@ -143,7 +145,7 @@ diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Threa
         }
          
         if (!$walk->message and @children and (@children == 1 or $walk->parent)) {
-@@ -195,6 +283,32 @@
+@@ -195,6 +286,32 @@
  sub messageid { $_[0]->{id}      = $_[1] if @_ == 2; $_[0]->{id}      }
  sub subject { eval { my $s = $_[0]->message->head->get("Subject") ||''; chomp $s; $s } }
  
@@ -178,7 +180,7 @@ diff -urN Mail-Thread-2.1_richardc_sent/Thread.pm Mail-Thread-2.1_richardc/Threa
      croak "Cowardly refusing to become my own parent: $self"
 diff -urN Mail-Thread-2.1_richardc_sent/t/1.t Mail-Thread-2.1_richardc/t/1.t
 --- Mail-Thread-2.1_richardc_sent/t/1.t	2003-04-11 22:39:57.000000000 +0100
-+++ Mail-Thread-2.1_richardc/t/1.t	2003-04-13 02:43:27.000000000 +0100
++++ Mail-Thread-2.1_richardc/t/1.t	2003-04-13 15:47:07.000000000 +0100
 @@ -8,6 +8,7 @@
  $Mail::Thread::debug=0;
  
