@@ -346,11 +346,10 @@ sub generate_lurker {
     my $l = Mariachi::Lurker->new;
     $self->generate_pages(
         'lurker.tt2', 'lurker.html',
-        threads => [
+        content => [
             map { [ $l->arrange( $_ ) ] } @{ $self->rootset }
            ],
         perpage    => 10,
-        list_title => $self->list_title
        );
 }
 
@@ -369,6 +368,8 @@ sub generate_pages {
         $self->tt->process(
             $template,
             { @_,
+              mariachi  => $self,
+              # callbacktastic
               again     => sub { $again },
               file      => sub { $file  },
               nthpage   => sub {
@@ -425,8 +426,8 @@ render thread tree into the directory of C<output>
 # XXX this seems to have just passed the stage of being too big
 sub generate {
     my $self = shift;
+
     my @threads = @{ $self->rootset };
-    my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
     my %touched_dates;
@@ -471,9 +472,8 @@ sub generate {
 
     $self->generate_pages(
         'index.tt2', 'index.html',
-        threads => $self->rootset,
+        content => $self->rootset,
         perpage => $self->threads_per_page,
-        list_title => $self->list_title,
     );
     $self->_bench("thread indexes");
 
@@ -485,7 +485,7 @@ sub generate {
         my @depth = split m!/!;
         $self->generate_pages( 'date.tt2', "$_/index.html",
                                archive_date => $_,
-                               mails        => \@mails,
+                               content      => \@mails,
                                base         => "../" x @depth,
                                perpage      => 20,
                               );
@@ -509,6 +509,7 @@ sub generate {
 
             $tt->process('message.tt2',
                          { base      => '../../../',
+                           mariachi  => $self,
                            thread    => $root,
                            message   => $mail,
                            container => $_[0],
