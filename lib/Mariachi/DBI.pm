@@ -2,6 +2,7 @@ use strict;
 package Mariachi::DBI;
 use base 'Class::DBI::SQLite';
 
+# XXX todo.  fix this api, call it Class::DBI::SQLite::AdHoc or something
 sub set_db {
     my $class = shift;
     $class->SUPER::set_db(@_);
@@ -31,7 +32,6 @@ sub create_later {
             $table->{class}->has_a( $k => $v );
         }
     }
-    warn "later has passed";
 }
 
 # I want to have my cake, and eat it.  Maybe if I eat it *later*... :)
