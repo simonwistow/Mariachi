@@ -105,7 +105,7 @@ sub generate {
                     # let the message know where it's linked from, and
                     # what it's linked to
 
-                    $mail->index($index_file);
+                    $mail->index("../../../".$index_file);
                     $mail->last($prev);
                     $prev->next($mail) if $prev;
                     $prev = $mail;
