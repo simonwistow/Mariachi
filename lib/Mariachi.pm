@@ -131,9 +131,10 @@ sub generate {
                           warn "$count\n" if ++$count % 50 == 0;
 
                           $tt->process('message.tt2',
-                                       { thread  => $mail->root,
-                                         message => $mail,
-                                         headers => [ 'Subject', 'Date' ],
+                                       { thread    => $mail->root,
+                                         message   => $mail,
+                                         headers   => [ 'Subject', 'Date' ],
+                                         container => $_[0],
                                        },
                                        $self->output."/".$mail->filename)
                             or die $tt->error;
