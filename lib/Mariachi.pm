@@ -51,13 +51,13 @@ sub thread {
     $self->threader($threader);
     $threader->thread;
 
-    my %date;
     $threader->order( sub {
                           # cache the dates
-                          $date{$_} = str2time $_->topmost->message->date
+                          $self->{date}->{$_} = str2time $_->topmost->message->date
                             for @_;
-                          sort { $date{$a} <=> $date{$b} } @_;
+                          sort { $self->{date}->{$a} <=> $self->{date}->{$b} } @_;
                       } );
+
 
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
@@ -87,7 +87,8 @@ sub generate {
     # -- 7
     # I hate ascii art
 
-    my @threads = $self->threader->rootset;
+    # we actually want the root set to be ordered latest first
+    my @threads = sort { $self->{date}->{$b} <=> $self->{date}->{$a} } $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
