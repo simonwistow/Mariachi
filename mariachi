@@ -20,7 +20,7 @@ $config->define("input", {
 
 $config->define("output", {
         ALIAS    => 'o',
-        ARGCOUNT => ARGCOUNT_NONE,
+        ARGCOUNT => ARGCOUNT_ONE,
     });
 
 
@@ -30,9 +30,13 @@ $config->define("title", {
     });
 
 
+
+
+my $conf = _get_conf_file();
+print "Using $conf config file\n";
+$config->file($conf) if defined $conf;
 $config->getopt();
 
-print $config->title(),"\n";
 
 die "need an input maildir" 
                     unless defined $config->input();
@@ -54,6 +58,17 @@ Mariachi->new( input  => $config->input,
               )
   ->perform;
 
+
+sub _get_conf_file {
+
+    my $sys  = "/usr/local/mariachi/mariachi.conf";
+    my $user = "$ENV{HOME}/.mariachi";
+
+    return $user if (-e $user && -f $user);
+    return $sys  if (-e $sys  && -f $sys);
+    return undef;
+    
+}
 __END__
 
 =head1 NAME
@@ -62,7 +77,7 @@ mariachi
 
 =head1 SYNOPSIS
 
- mariachi input output_dir [ "list name" ]
+ mariachi --input input --output output_dir [ --title "list name" ]
 
 =head1 DESCRIPTION
 
@@ -79,13 +94,29 @@ It differs in a few important ways:
 
 =back
 
+=head1 USAGE
+
+You can write a config file to stop your self some trouble - mariachi 
+first looks in I<~/.mariachi> and then I</usr/local/mariachi/mariachi.conf>.
+
+An example config file might look like
+
+    force
+    input  = ~/mail
+    output = ~/public_html/mymail/
+
+You don't have to supply everything (as long as the required
+options are then passed on the command line).
+
+Options on the command line override options in the config files.
+
 =head1 AUTHORS
 
 This code was written as part of the Siesta project and includes code
 from:
 
-Richard Clamp <richardc@unixbeard.net>
-Simon Wistow <simon@thegestalt.org>
+Richard Clamp <richardc@unixbeard.net>,
+Simon Wistow <simon@thegestalt.org>,
 Tom Insam <tom@jerakeen.org>
 
 More information about the Siesta project can be found online at
