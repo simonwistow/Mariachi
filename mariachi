@@ -36,6 +36,7 @@ print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
 $start = [gettimeofday];
 
 my $threader = Email::Thread::Mariachi->new( @mails );
+$Mail::Thread::nosubject=1;  # arse, trees get too deep if we turn this on :(
 $threader->thread;
 
 $_->order_children for $threader->rootset;
@@ -113,17 +114,6 @@ sub order_children {
     $walk->next(undef) if $walk;
 }
 
-# the topmost container with a message attached
-sub topmost {
-    my $self = shift;
-
-    return $self if $self->message;
-    my $sib = eval { $self->next->topmost };
-    return $sib if $sib;
-    my $kid = eval { $self->child->topmost };
-    return $kid if $kid;
-    return;
-}
 
 sub find_message_id {
     my $self = shift;
