@@ -3,10 +3,11 @@
 
 [%# set up pagination %]
 [% thispage = again || 1 ; nextpage = thispage + 1 ; 
-   filename = thispage == 1 ? 'lurker.html' : 'lurker' _ thispage _ '.html' %]
+   filename = thispage == 1 ? 'lurker.html' : 'lurker' _ thispage _ '.html';
+   '' %]
 [% USE page = Page(threads.size, perpage, thispage) %] 
 [% IF thispage == page.last_page ; again(0) ; ELSE ; again(nextpage) ; END %]
-[% file( filename ) %]
+[% file( filename ); '' %]
 
 <h1>[% list_title %]</h1>
 
