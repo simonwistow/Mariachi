@@ -3,75 +3,13 @@ use strict;
 use Mariachi;
 use AppConfig qw(:argcount);
 
-
-# define the command line options
-my $config = AppConfig->new();
-
-$config->define("force", {
-        ALIAS    => 'f',
-        DEFAULT  => 0,
-        ARGCOUNT => ARGCOUNT_NONE,
-    });
-
-$config->define("input", {
-        ALIAS    => 'i',
-        ARGCOUNT => ARGCOUNT_ONE,
-    });
-
-$config->define("output", {
-        ALIAS    => 'o',
-        ARGCOUNT => ARGCOUNT_ONE,
-    });
-
-
-$config->define("title", {
-        ALIAS    => 't',
-        ARGCOUNT => ARGCOUNT_ONE,
-    });
-
-
-# define the system and the user config files
-my $sys  = "/usr/local/mariachi/mariachi.conf";
-my $user = "$ENV{HOME}/.mariachi";
-
-# and read them in if they exist
-$config->file($sys)  if (-e $sys  && -f $sys);
-$config->file($user) if (-e $user && -f $user);
-
-# then read in the command line options
-$config->getopt();
-
-
-die "need an input maildir" 
-                    unless defined $config->input();
-die "where do we put them?" 
-                    unless defined $config->output();
-
-unless (defined $config->title()) {
-    warn "Should pass a list title\n"; 
-    $config->title("no list title");
-}
-
-
-
-Mariachi->new( input  => $config->input,
-               output => $config->output,
-               force  => $config->force,
-               threads_per_page => 20,
-               list_title => $config->title,
-              )
-  ->perform;
-
-
-__END__
-
 =head1 NAME
 
-mariachi
+mariachi - All dancing mail archive generator
 
 =head1 SYNOPSIS
 
- mariachi --input input --output output_dir [ --title "list name" ] [--force]
+ mariachi [ OPTIONS ]
 
 =head1 DESCRIPTION
 
@@ -90,8 +28,9 @@ It differs in a few important ways:
 
 =head1 USAGE
 
-You can write a config file to stop your self some trouble - mariachi 
-first looks in I<~/.mariachi> and then I</usr/local/mariachi/mariachi.conf>.
+You can write a config file to save yourself some trouble - mariachi
+first looks in I</usr/local/mariachi/mariachi.conf> and then
+I<~/.mariachi>.
 
 An example config file might look like
 
@@ -99,26 +38,109 @@ An example config file might look like
     input  = ~/mail
     output = ~/public_html/mymail/
 
-You don't have to supply everything (as long as the required
-options are then passed on the command line).
+You don't have to supply everything (as long as the required options
+are then passed on the command line).
 
 Options on the command line override options in the config files.
 
-The short versions of command line options are
+=head1 OPTIONS
 
-    --input  => -i
-    --output => -o
-    --force  => -f
-    --title  => -t
+=head2 -i, --input I<folder>
+
+The source mail folder
+
+=cut
+
+# define the command line options
+my $config = AppConfig->new;
+
+$config->define("input", {
+    ALIAS    => 'i',
+    ARGCOUNT => ARGCOUNT_ONE,
+});
+
+
+=head2 -o, --output I<directory>
+
+Name of the directory to write output to
+
+=cut
+
+$config->define("output", {
+    ALIAS    => 'o',
+    ARGCOUNT => ARGCOUNT_ONE,
+});
+
+
+=head2 -t, --title I<title>
+
+What to use in the title of the mailing lists
+
+=cut
+
+$config->define("title", {
+    ALIAS    => 't',
+    ARGCOUNT => ARGCOUNT_ONE,
+});
+
+
+=head2 -f --force
+
+Force is probably not a good name
+
+=cut
+
+$config->define("force", {
+    ALIAS    => 'f',
+    DEFAULT  => 0,
+    ARGCOUNT => ARGCOUNT_NONE,
+});
+
+
+# define the system and the user config files
+my $sys  = "/usr/local/mariachi/mariachi.conf";
+my $user = "$ENV{HOME}/.mariachi";
+
+# and read them in if they're readable
+$config->file($sys)  if -r $sys;
+$config->file($user) if -r $user;
+
+# then read in the command line options
+$config->getopt;
+
+die "need an input maildir"
+  unless defined $config->input;
+die "where do we put them?"
+  unless defined $config->output;
+
+unless (defined $config->title) {
+    warn "Should pass a list title\n";
+    $config->title("no list title");
+}
+
+Mariachi->new( input  => $config->input,
+               output => $config->output,
+               force  => $config->force,
+               threads_per_page => 20,
+               list_title => $config->title,
+              )
+  ->perform;
+
+
+__END__
 
 =head1 AUTHORS
 
 This code was written as part of the Siesta project and includes code
 from:
 
-Richard Clamp <richardc@unixbeard.net>,
-Simon Wistow <simon@thegestalt.org>,
+Richard Clamp <richardc@unixbeard.net>
+
+Simon Wistow <simon@thegestalt.org>
+
 Tom Insam <tom@jerakeen.org>
+
+Mark Fowler <mark@twoshortplanks.com>
 
 More information about the Siesta project can be found online at
 http://siesta.unixbeard.net/
@@ -132,4 +154,7 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Mail::Thread, Mariachi
+L<Mail::Thread>, L<Mariachi>
+
+=cut
+
