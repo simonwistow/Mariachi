@@ -19,7 +19,8 @@ sub create_later {
                  keys %{ $table->{fields} },
                 ) . " ) ";
         #warn $sql;
-        $self->db_Main->do( $sql );
+        $self->db_Main->do( $sql )
+          or die "couldn't create '$table->{name}': " . $self->db_Main->errstr;
     }
 
     # and now set up the tables and the has_a's
