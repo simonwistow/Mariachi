@@ -103,7 +103,7 @@ sub first_lines {
     my $self = shift;
     my $num  = shift || 1;
 
-    return $self->_get_context(lines => $num);
+    return $self->_significant_signal(lines => $num);
 }
 
 
@@ -115,7 +115,7 @@ Returns the first original paragraph of the message
 
 sub first_paragraph {
     my $self = shift;
-    return $self->_get_context(para => 1);
+    return $self->_significant_signal(para => 1);
 }
 
 =head2 ->first_sentence
@@ -131,7 +131,7 @@ sub first_sentence {
     return $text;
 }
 
-sub _get_context {
+sub _significant_signal {
     my $self = shift;
     my %opts = @_;
 
@@ -198,7 +198,7 @@ sub _get_context {
     return $return;
 }
 
-memoize('_get_context');
+memoize('_significant_signal');
 
 =head2 ->body_sigless
 
