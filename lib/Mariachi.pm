@@ -344,8 +344,14 @@ sub time_thread {
             }
         }
 
+        # pad the rows with undefs
+        my $maxcol = max map { scalar @$_ } @cells;
+        for my $row (@cells) {
+            $row->[$_] ||= undef for (0..$maxcol-1);
+        }
+
         push @results, \@cells;
-        if (1) {
+        if (0) {
             # and again in their new state
             for my $row (@cells) {
                 my $this;
@@ -429,6 +435,26 @@ sub split_deep {
         }
         $root->add_child( $_ );
     }
+}
+
+=head2 ->generate_lurker
+
+=cut
+
+sub generate_lurker {
+    my $self = shift;
+    my $data = shift;
+
+    my $tt = Template->new(
+        INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
+        RECURSION => 1
+       );
+
+    $tt->process('lurker.tt2',
+                 { threads => $data,
+                   list_title => $self->list_title,
+               },
+                 $self->output . "/lurker.html" ) or die $tt->error;
 }
 
 =head2 ->generate
@@ -566,7 +592,8 @@ sub perform {
     $self->sanity;          $self->_bench("sanity");
     $self->order;           $self->_bench("order");
     $self->sanity;          $self->_bench("sanity");
-    $self->time_thread;     $self->_bench("lurker format thread reworking");
+    my @data = $self->time_thread;     $self->_bench("lurker format thread reworking");
+    $self->generate_lurker( \@data ); $self->_bench("lurker output");
     $self->strand;          $self->_bench("strand");
     $self->split_deep;      $self->_bench("deep threads split up");
     $self->sanity;          $self->_bench("sanity");
