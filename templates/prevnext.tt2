@@ -3,7 +3,7 @@
 [% SET parent = container.parent.message %]
 <strong>Parent:</strong>
 <div class="thread">
-<a href="[% parent.filename %]">[% parent.subject | html %]<a/><br/>
+<a href="[% base %][% parent.filename %]">[% parent.subject | html %]<a/><br/>
 <small>[% parent.from | html%] <i>[% date.format(child.epoch_date) %]</i></small><br/>
 </div>
 [% END %]
@@ -13,7 +13,7 @@
 <div class="thread">
 [% FOREACH temp = container.children %]
 [% SET child = temp.message %]
-<a href="[% child.filename %]">[% child.subject | html %]</a><br/>
+<a href="[% base %][% child.filename %]">[% child.subject | html %]</a><br/>
 <small>[% child.from | html %] <i>[% date.format(child.epoch_date) %]</i></small><br/>
 [% END %]
 </div>

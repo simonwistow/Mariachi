@@ -1,12 +1,13 @@
 [% USE date( format = '%H:%M on %d %b %Y' ) %]
+[% base = "../../../" %]
 
-[% INCLUDE header.tt2 title = message.subject base = "../../.." %]
+[% INCLUDE header.tt2 title = message.subject %]
 
 <h1>[% message.subject | html %]</h1>
 
 <p>
-[<a href="[% message.last.filename %]">last</a>]
-[<a href="[% message.next.filename %]">next</a>]
+[<a href="[% base %][% message.last.filename %]">last</a>]
+[<a href="[% base %][% message.next.filename %]">next</a>]
 [<a href="[% message.index %]#[% message.filename %]">thread index</a>]
 
 </p>
