@@ -147,7 +147,6 @@ sub generate {
             $tt->process('message.tt2',
                          { thread    => $root,
                            message   => $mail,
-                           headers   => [ 'Subject', 'Date' ],
                            container => $_[0],
                          },
                          $self->output . "/" . $mail->filename)

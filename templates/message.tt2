@@ -1,3 +1,5 @@
+[% USE date( format = '%H:%M on %d %b %Y' ) %]
+
 [% INCLUDE header.tt2 title = message.subject base = "../../.." %]
 
 <h1>[% message.subject | html %]</h1>
@@ -9,9 +11,8 @@
 
 <div class=headers>
 <b>From:</b> [% message.from %]
-[% FOREACH hdr = headers %]
-<br><b>[% hdr %]:</b> [% message.header(hdr) | html %]
-[% END %]
+<br /><b>Subject:</b> [% message.subject %]
+<br /><b>Date:</b> [% date.format(message.epoch_date) %]
 </div>
 
 <pre>[% message.body | html %]</pre>
