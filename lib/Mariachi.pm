@@ -14,6 +14,47 @@ __PACKAGE__->mk_accessors( qw( messages threader input output
                                threads_per_page list_title
                                start_time last_time ) );
 
+# $before, $after should map to
+# sub recursive_walk {
+#    my $self = shift;
+#    $before->($self);
+#    $self->child->recursive_walk if $self->child;
+#    $self->next->recursive_walk if $self->next;
+#    $after->($self);
+# }
+
+sub iterative_walk_down {
+    my $self = shift;
+    my ($before, $after) = @_;
+
+    my $next;
+    my $depth = 0;
+    my %seen;
+    for (my $walk = $self; $walk; $walk = $next) {
+        $before->($walk, $depth) if $before;
+
+        # spot/break loops
+        $seen{$walk}++;
+        $walk->child(undef) if $seen{ $walk->child || '' };
+        $walk->next(undef)  if $seen{ $walk->next  || '' };
+
+        # go down, or across
+        if ($walk->child) { $next = $walk->child; ++$depth }
+        else              { $next = $walk->next }
+
+        # no next?  wander back up
+        if (!$next) {
+            while ($depth) {
+                $next = $walk->parent->next;
+                $after->($walk, $depth) if $after;
+                --$depth;
+                last if $next;
+            }
+        }
+    }
+    $after->($self, 0) if $after;
+}
+
 sub new {
     my $class = shift;
     $class->SUPER::new({@_});
@@ -232,6 +273,18 @@ sub perform {
 
     $self->thread;
     $self->_bench("thread");
+
+    iterative_walk_down($_, sub {
+                            my ($c, $depth) = @_;
+                            print " " x $depth;
+                            print "$c before\n";
+                        },
+                        sub {
+                            my ($c, $depth) = @_;
+                            print " " x $depth;
+                            print "$c after\n";
+                        },
+                       ) for $self->threader->rootset;
     $self->order;
     $self->_bench("order");
     #$self->thread_check;
