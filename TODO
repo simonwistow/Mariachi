@@ -1,17 +1,7 @@
-=head1 allow specification of template dirs
-
-=head1 copy non-templates from template dirs into the output path
-
 =head1 Build.PL files installer
 
 customise location, place value as default into a tiny generated 
-stub - probably from mariachi.PL
-
-=head1 Internals documentation
-
-as always.  needs to cover subclassing, since we kinda support it, but
-I'm sure that we'll assimlate ideas rather than subclass in many
-instances
+stub - probably from mariachi.PL, or Mariachi::Config
 
 =head1 website/usage docs
 
