@@ -115,13 +115,13 @@ sub generate {
                     # and mark the thread dirty, if the message is new
                     unless (-e $self->output."/".$mail->filename) {
                         $touched_threads{ $root } = $root;
-                        # And also dirty the date threads
+                        # dirty up the date indexes
                         $touched_date_threads{ $mail->year } = 1;
                         $touched_date_threads{ $mail->month } = 1;
                         $touched_date_threads{ $mail->day } = 1;
                     }
 
-                    # And mark date indexes for building
+                    # add things to the date indexes
                     push @{ $date_indexes{ $mail->year } }, $mail;
                     push @{ $date_indexes{ $mail->month } }, $mail;
                     push @{ $date_indexes{ $mail->day } }, $mail;
