@@ -40,7 +40,7 @@ diff -urN Mail-Thread-2.1/MANIFEST Mail-Thread-2.1_richardc/MANIFEST
 +t/testbox-9
 diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 --- Mail-Thread-2.1/Thread.pm	2003-03-31 12:08:58.000000000 +0100
-+++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-27 14:41:41.000000000 +0100
++++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-27 15:13:36.000000000 +0100
 @@ -2,10 +2,10 @@
  
  use 5.00503;
@@ -356,7 +356,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          }
          $prev = $x;
      }
-@@ -245,27 +398,70 @@
+@@ -245,6 +398,30 @@
      return @children;
  }
  
@@ -385,38 +385,37 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +}
 +
  sub recurse_down {
-+    my $self = shift;
-+    my $callback = shift;
-+    $self->iterate_down($callback);
-+}
-+
+     my %seen;
+     my $do_it_all;
+@@ -254,18 +431,49 @@
+         $seen{$self}++;
+         $callback->($self);
+ 
+-        if ($seen{$self->next}) { $self->next(undef) }
++        if ($self->next && $seen{$self->next}) { $self->next(undef) }
+         $do_it_all->($self->next, $callback)  if $self->next;
+-        if ($seen{$self->child}) { $self->child(undef) }
++        if ($self->child && $seen{$self->child}) { $self->child(undef) }
+         $do_it_all->($self->child, $callback) if $self->child;
+ 
+     };
+     $do_it_all->(@_);
+ }
+ 
 +sub iterate_down {
 +    my $self = shift;
 +    my ($before, $after) = @_;
 +
 +    my $next;
 +    my $depth = 0;
-     my %seen;
--    my $do_it_all;
--    $do_it_all = sub {
--        my $self = shift;
--        my $callback = shift;
--        $seen{$self}++;
--        $callback->($self);
--
--        if ($seen{$self->next}) { $self->next(undef) }
--        $do_it_all->($self->next, $callback)  if $self->next;
--        if ($seen{$self->child}) { $self->child(undef) }
--        $do_it_all->($self->child, $callback) if $self->child;
++    my %seen;
 +    for (my $walk = $self; $walk; $walk = $next) {
 +        $before->($walk, $depth) if $before;
- 
--    };
--    $do_it_all->(@_);
++
 +        # spot/break loops
 +        $seen{$walk}++;
-+        $walk->child(undef) if $seen{ $walk->child || '' };
-+        $walk->next(undef)  if $seen{ $walk->next  || '' };
++        if ($walk->child && $seen{$walk->child}) { $walk->child(undef) }
++        if ($walk->next  && $seen{$walk->next})  { $walk->next(undef) }
 +
 +        # go down, or across
 +        if ($walk->child) { $next = $walk->child; ++$depth }
@@ -433,15 +432,15 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +        }
 +    }
 +    $after->($self, 0) if $after;
- }
- 
++}
++
  1;
  __END__
 -# Below is stub documentation for your module. You'd better edit it!
  
  =head1 NAME
  
-@@ -282,7 +478,7 @@
+@@ -282,7 +490,7 @@
  
      sub dump_em {
          my ($self, $level) = @_;
@@ -450,7 +449,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          if ($self->message) {
              print $self->message->head->get("Subject") , "\n";
          } else {
-@@ -298,8 +494,6 @@
+@@ -298,8 +506,6 @@
  threading algorithm, as described by http://www.jwz.org/doc/threading.html.
  Any deviations from the algorithm are accidental.
  
@@ -459,7 +458,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  It's happy to be handed C<Mail::Internet> and C<Mail::Box::Message> objects,
  since they're more or less the same, but nothing other than that.
  
-@@ -318,6 +512,10 @@
+@@ -318,6 +524,10 @@
  Returns a list of C<Mail::Thread::Container>s which are not the parents
  of any other message.
  
@@ -470,7 +469,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head1 C<Mail::Thread::Container> methods
  
  C<Mail::Thread::Container>s are the nodes of the thread tree. You can't just
-@@ -343,12 +541,24 @@
+@@ -343,12 +553,24 @@
  
  Returns the message held in this container, if we have one.
  
@@ -496,7 +495,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head2 has_descendent($child)
  
  Returns true if this container has the given container as a child somewhere
-@@ -366,6 +576,28 @@
+@@ -366,6 +588,28 @@
  
  Returns a list of the B<immediate> children of this container.
  
@@ -525,7 +524,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  =head2 recurse_down($callback)
  
  Calls the given callback on this node and B<all> of its children.
-@@ -379,6 +611,6 @@
+@@ -379,6 +623,6 @@
  Copyright 2003 by Kasei
  
  This library is free software; you can redistribute it and/or modify
