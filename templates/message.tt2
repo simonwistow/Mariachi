@@ -14,12 +14,11 @@
 [% END %]
 </div>
 
-
 <pre>[% message.body | html %]</pre>
 
 [% INCLUDE prevnext.tt2 container = container %]
 
-[% INCLUDE bottomthread.tt2 message = message %]
+[% PROCESS bottomthread.tt2 %]
 
 </body>
 </html>

@@ -89,7 +89,6 @@ sub generate {
                                  my $mail = $_[0]->message or return;
 
                                  $mail->index( $index_file );
-                                 $mail->root( $_ );
 
                                  my $next = $_[0]->child || $_[0]->next;
                                  my $parent = $_[0];
@@ -134,7 +133,7 @@ sub generate {
                               my $mail = $_[0]->message or return;
 
                               $tt->process('message.tt2',
-                                           { thread    => $mail->root,
+                                           { thread    => $_,
                                              message   => $mail,
                                              headers   => [ 'Subject',
                                                             'Date' ],
