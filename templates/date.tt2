@@ -1,4 +1,4 @@
-[% PROCESS header.tt2 title="Messages for " _ archive_date %]
+[% PROCESS header.tt2 title=mariachi.list_title _ " - Messages for " _ archive_date %]
 [% PROCESS paginate.tt2 %]
 <h1>messages for [% archive_date %]</h1>
 
