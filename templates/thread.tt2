@@ -2,7 +2,7 @@
 [% thread.message.walkover %]
 [% IF thread.message %]
   [% IF thread.message == message %]<b>You are here:</b>[% END %]
-  <a href="[% thread.message.filename %]">[% thread.message.subject %]</a><br />
+  <a href="[% thread.message.filename %]" name="[% thread.message.filename %]">[% thread.message.subject %]</a><br />
   <small>[% thread.message.from %] <i>[% thread.message.date %]</i></small>
 [% ELSE %]
   (message not available)

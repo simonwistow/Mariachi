@@ -11,7 +11,11 @@
 
 <pre>[% message.body | html %]</pre>
 
+
 <div class=threads>
+<p><a href="[% IF message.page %]index_[% message.page %].html[% ELSE %]index.html[% END %]#[% message.filename %]">
+thread index</a></p>
+
 [% PROCESS thread.tt2 %]
 </div>
 

@@ -80,6 +80,12 @@ sub generate {
     while (scalar(@threads)) {
         warn "Index page ".($page+1)."\n";
         my @page = splice(@threads, 0, $self->threads_per_page);
+        $_->recurse_down(sub {
+            my $message = $_[0]->message();
+            return unless $message;
+            $message->page($page);
+        })
+            for (@page);
         $tt->process('index.tt2',
                      { threads => \@page,
                        page => $page,
