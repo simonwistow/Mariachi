@@ -282,7 +282,7 @@ sub time_thread {
         $thread->iterate_down(
             sub {
                 my ($c, $d) = @_;
-                print '  ' x $d, $c->messageid, "\n";
+                print '  ' x $d, $c->messageid, "\n" if 0;
                 push @messages, $c if $c->message;
             } );
 
@@ -345,16 +345,18 @@ sub time_thread {
         }
 
         push @results, \@cells;
-        # and again in their new state
-        for my $row (@cells) {
-            my $this;
-            for (@$row) {
-                $this ||= $_;
-                print ref $_ ? '*' : $_ ? $_ : ' ';
+        if (1) {
+            # and again in their new state
+            for my $row (@cells) {
+                my $this;
+                for (@$row) {
+                    $this ||= $_;
+                    print ref $_ ? '*' : $_ ? $_ : ' ';
+                }
+                print "\t", $this->messageid, "\n";
             }
-            print "\t", $this->messageid, "\n";
+            print "\n";
         }
-        print "\n";
     }
     return @results;
 }
