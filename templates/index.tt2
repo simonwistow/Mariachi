@@ -7,7 +7,7 @@
 [% FOREACH root = page.splice(content) %]
 
 <ul class="threads">
-    [% INCLUDE thread.tt2 thread=root depth=0 %]
+    [% INCLUDE thread.tt2 thread=root depth=0 backlink=1 %]
 </ul>
 
 [% END %]

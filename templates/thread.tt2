@@ -1,5 +1,6 @@
 <li class="thread">
 [% IF thread.message %]
+	[% IF backlink ; thread.message.linked.thread = file ; END %]
 	[% this = thread.message == message %]
 	[% IF thread.message.prev.subject != thread.message.subject %]
 		[%# The previous subject line differed, so show the new one %]
@@ -35,5 +36,5 @@
 [% END %]
 </li>
 [% IF thread.next %]
-  [% INCLUDE thread.tt2 thread=thread.next %]
+  [% INCLUDE thread.tt2 thread=thread.next backlink=backlink %]
 [% END %]

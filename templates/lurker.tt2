@@ -42,7 +42,7 @@
 		<td width="24"><img src="images/[% mapping.$cell %].png" height="24" width="24" alt="[% cell %]"></td>
 	    [% END %]
         [% END %]
-        [% message.linked.lurker = file _ '#' _ message.filename %]
+        [% message.linked.lurker = file %]
         <td><img src="images/blank.png" width="48" height="24"></td>
 	<td rowspan="2"><small>[% message.first_sentence | html %]<br />
 			<a href="[% message.filename %]">[% message.from | html %]</a> [% date.format( message.epoch_date ) %]</small></td>
