@@ -3,9 +3,9 @@
 <h1>[% message.subject | html %]</h1>
 
 <p>
-[<a href="[% base %][% message.last.filename %]">last</a>]
+[<a href="[% base %][% message.last.filename %]">prev</a>]
+[<a href="[% base %][% message.index %]#[% message.filename %]">thread</a>]
 [<a href="[% base %][% message.next.filename %]">next</a>]
-[<a href="[% base %][% message.index %]#[% message.filename %]">thread index</a>]
 
 [Date index for <a href="[% base %][% message.year %]">[% message.ymd.0 %]</a>/<a href="[% base %][% message.month %]">[% message.ymd.1 %]</a>/<a href="[% base %][% message.day %]">[% message.ymd.2 %]</a>]
 </p>
