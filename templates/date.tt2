@@ -1,0 +1,9 @@
+[% PROCESS header.tt2 title="Messages for " _ archive_date %]
+
+<h1>messages for [% archive_date %]</h1>
+
+[% FOR mail=mails %]
+<br /><a href="[% base %][% mail.filename %]">[% date.format(mail.epoch_date) %]: [% mail.subject %]</a>
+
+[% END %]
+

@@ -93,6 +93,7 @@ sub generate {
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
+    my %date_indexes;
     my $prev;
     while (@threads) {
         # @chunk is the chunk of threads on this page
@@ -115,6 +116,12 @@ sub generate {
                     # and mark the thread dirty, if the message is new
                     $touched_threads{ $root } = $root
                       unless -e $self->output."/".$mail->filename;
+
+                    # And mark date indexes for building
+                    my @date = localtime $mail->epoch_date;
+                    push @{$date_indexes{sprintf("%04d", $date[5]+1900)}}, $mail;
+                    push @{$date_indexes{sprintf("%04d/%02d", $date[5]+1900, $date[4]+1)}}, $mail;
+                    push @{$date_indexes{sprintf("%04d/%02d/%02d", $date[5]+1900, $date[4]+1, $date[3])}}, $mail;
                 }
                 $sub->($c->child);
                 $sub->($c->next);
@@ -129,6 +136,20 @@ sub generate {
                      },
                      $self->output . "/$index_file" )
           or die $tt->error;
+
+        warn "Date indexes..\n";
+        
+        for (keys(%date_indexes)) {
+            my $depth = scalar(split(m!/!, $_));
+            $tt->process('date.tt2',
+                         { archive_date => $_,
+                           mails => $date_indexes{$_},
+                           base => "../" x $depth,
+                         },
+                         $self->output . "/$_/index.html" )
+              or die $tt->error;
+        }
+
         $page++;
     }
 
