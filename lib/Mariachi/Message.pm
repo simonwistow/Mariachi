@@ -53,6 +53,13 @@ sub new {
     return $self;
 }
 
+
+sub _make_fake_id {
+    my $self = shift;
+    my $hash = md5_hex( $self->header('from').$self->epoch_date );
+    return "$hash\@made_up";
+}
+
 =head2 ->body
 
 =head2 ->header
@@ -149,14 +156,6 @@ sub filename {
     return $self->day."/".$filename;
 }
 memoize('filename');
-
-sub _make_fake_id {
-    my $self = shift;
-    my ($from,$domain) = split /\@/, $self->header('from');
-    my $date           = $self->epoch_date;
-    my $hash           = md5_base64("$from$date");
-    return "$hash\@$domain";
-}
 
 1;
 
