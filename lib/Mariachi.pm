@@ -151,7 +151,9 @@ sub strand {
         my $sub = sub {
             my ($cont, $depth) = @_;
 
-            push @toodeep, $cont if ($depth && $depth % 4 == 0);
+            if ($depth && ($depth % 14 == 0) && $cont->parent->child == $cont) {
+                push @toodeep, $cont;
+            }
             my $mail = $cont->message or return;
             $prev->next($mail) if $prev;
             $mail->prev($prev);
@@ -165,21 +167,23 @@ sub strand {
 
     # untangle things too deep
     for (@toodeep) {
-        if ($_->child) {
-            # the top one needs to be empty, because we're cheating.
-            # to keep references straight, we'll move its content
-            my $top = $_->topmost;
-            my $root = $top->message->root
-              or die "trying to handle something we didn't iterate over!!!".$top->message->header('message-id');
-            if ($root->message) {
-                my $new = Mail::Thread::Container->new($root->messageid);
-                $root->messageid('dummy');
-                $new->child($root->child);
-                $root->child($new);
-                $root = $new;
-            }
-            $root->add_child( $_->child );
+        print "stranding ", $_->messageid, "\n";
+
+        # the top one needs to be empty, because we're cheating.
+        # to keep references straight, we'll move its content
+        my $top = $_->topmost;
+        my $root = $top->message->root
+          or die "trying to handle something we didn't iterate over!!!".$top->message->header('message-id');
+        if ($root->message) {
+            my $new = Mail::Thread::Container->new($root->messageid);
+            $root->messageid('dummy');
+            $new->message($root->message);
+            $root->message(undef);
+            $new->child($root->child);
+            $root->child($new);
+            $root = $new;
         }
+        $root->add_child( $_ );
     }
 }
 
