@@ -50,9 +50,10 @@ C<generate>
 The name of this list.  Used by C<generate>
 
 =head2 ->start_time
+
 =head2 ->last_time
 
-Used interannly by the C<_bench> method
+Used internally by the C<_bench> method
 
 
 =head1 METHODS
@@ -460,7 +461,7 @@ This code was written as part of the Siesta project and includes code
 from:
 
 Richard Clamp, <richardc@unixbeard.net>
-Simon Wistow, <>
+Simon Wistow, <simon@thegestalt.org>
 Tom Insam, <>
 
 More information about the Siesta project can be found online at
