@@ -1,18 +1,12 @@
 [% IF pages %]
-<p>[
-[% IF page == 1 %]<a href="index.html">&lt; prev</a>[% END %]
-[% IF page > 1 %]<a href="index_[% page - 1 %].html">&lt; prev</a>[% END %]
+<p>[% IF page > 0 %]<a href="index[% IF page > 1; "_" _ (page - 1) ; END %].html">&lt; mari</a>[% ELSE %]mari[% END %]
+
 [% FOREACH p = [0..pages] %]
-[% IF p == page %]<b>[% END %]
-[% IF loop.first %]<a href="index.html">mari</a>
-[% ELSE %]
-<a href="index_[% p %].html">[% IF loop.last %]chi[% ELSE %]a[% END %]</a>
+[% IF p == page ; "<b>a</b>"; ELSE %]
+<a href="index[% IF page > 0; "_" _ page ; END %].html">a</a>[% END %]
 [% END %]
-[% IF p == page %]</b>[% END %]
-[% END %]
-[% IF page < pages %]<a href="index_[% page + 1 %].html">next &gt;</a>[% END %]
-]
-<br />( Page [% page + 1 %] of [% pages + 1 %] )
+[% IF page < pages %]<a href="index_[% page + 1 %].html">chi &gt;</a>[% ELSE %]chi[% END %]
+<br />[ Page [% page + 1 %] of [% pages + 1 %] ]
 </p>
 [% END %]
 
