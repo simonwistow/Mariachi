@@ -34,7 +34,7 @@ sub _bench {
     $self->last_time($now);
 }
 
-sub load_messages {
+sub load {
     my $self = shift;
 
     my $folder = Mariachi::Folder->new( $self->input )
@@ -51,7 +51,7 @@ sub load_messages {
     $self->messages( \@msgs );
 }
 
-sub dedupe_messages {
+sub dedupe {
     my $self = shift;
 
     my %seen;
@@ -67,7 +67,7 @@ sub dedupe_messages {
     $self->messages(\@new);
 }
 
-sub sanitise_messages {
+sub sanitise {
     my $self = shift;
 
     # some messages have been near mail2news gateways, which means that
@@ -102,7 +102,7 @@ sub order {
                         }) for $self->threader->rootset;
 }
 
-sub thread_check {
+sub sanity {
     my $self = shift;
 
     # (in)sanity test - is everything in the original mbox in the
@@ -300,35 +300,16 @@ sub perform {
 
     $self->_bench("startup");
 
-    $self->load_messages;
-    $self->_bench("load ".scalar @{ $self->messages });
-
-    $self->dedupe_messages;
-    $self->_bench("dedupe");
-
-    #$self->sanitise_messages;
-    #$self->_bench("sanitise");
-
-    $self->thread;
-    $self->_bench("thread");
-
-    $self->thread_check;
-    $self->_bench("sanity");
-
-    $self->order;
-    $self->_bench("order");
-
-    $self->thread_check;
-    $self->_bench("sanity");
-
-    $self->strand;
-    $self->_bench("strand");
-
-    $self->thread_check;
-    $self->_bench("sanity");
-
-    $self->generate;
-    $self->_bench("generate");
+    $self->load;     $self->_bench("load ".scalar @{ $self->messages });
+    $self->dedupe;   $self->_bench("dedupe");
+    #$self->sanitise; $self->_bench("sanitise");
+    $self->thread;   $self->_bench("thread");
+    $self->sanity;   $self->_bench("sanity");
+    $self->order;    $self->_bench("order");
+    $self->sanity;   $self->_bench("sanity");
+    $self->strand;   $self->_bench("strand");
+    $self->sanity;   $self->_bench("sanity");
+    $self->generate; $self->_bench("generate");
 }
 
 
