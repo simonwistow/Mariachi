@@ -20,22 +20,22 @@ Template::Plugin::Mariachi - gussy up email for the Mariachi mailing list archiv
 
 =head1 SYNOPSIS
 
-    [% USE Mariachi %]
+  [% USE Mariachi %]
 
-    <b>From:</b> [% message.from | mariachi(uris => 0) %]<br />
-    <b>Subject:</b> [% message.subject | html | mariachi %]<br />
-    <b>Date:</b> [% date.format(message.epoch_date) %]<br />
+  <b>From:</b> [% message.from | mariachi(uris => 0) %]<br />
+  <b>Subject:</b> [% message.subject | html | mariachi %]<br />
+  <b>Date:</b> [% date.format(message.epoch_date) %]<br />
 
-    <pre>[% message.body | html | mariachi %]</pre>
-
+  <pre>[% message.body | html | mariachi %]</pre>
 
 =head1 DESCRIPTION
 
-Used by the mariachi mailing list archiver to make emails more suitable 
-for display as html by hiding email addresses and making links clickable.
+Used by the mariachi mailing list archiver to make emails more
+suitable for display as html by hiding email addresses and making
+links clickable.
 
-Theoretically this could be done with some other C<Template::Toolkit> plugins but 
-this is easier for us.
+Theoretically this could be done with some other C<Template::Toolkit>
+plugins but this is easier for us.
 
 =head1 METHODS
 
@@ -59,9 +59,8 @@ sub init {
     $self->{_MYCONFIG}  = $config;
 
     $self->install_filter($FILTER_NAME);
-    
-    return $self;
 
+    return $self;
 }
 
 =head2 [% FILTER mariachi %]
@@ -100,13 +99,13 @@ sub _should_do {
     my $self   = shift;
     my $key    = shift || croak("Must pass a key");
     my $config = shift || {};
-    
+
 
     # if it's defined in the local config then use that value
     return $config->{$key}             if defined $config->{$key};
     # otherwise check in the initialised config
     return $self->{_MY_CONFIG}->{$key} if defined $self->{_MY_CONFIG}->{$key};
-    
+
     # otherwise we're on by default
     return 1;
 
@@ -117,11 +116,11 @@ sub _should_do {
 
 =head2 munge_email <email> <orig_email>
 
-Takes exactly the same options as callbacks to C<Email::Find>. Currently turns all 
-non period characters in the domain part of an email address and turns them into 
-'x's such that :
+Takes exactly the same options as callbacks to
+C<Email::Find>. Currently turns all non period characters in the
+domain part of an email address and turns them into 'x's such that :
 
-        simon@thegestalt.org 
+        simon@thegestalt.org
 
 becomes
 
@@ -146,29 +145,29 @@ sub munge_email {
                                              # notation polish reverse like, fun it's
                  }ex;
 
-    
+
     return $orig_email;
 }
 
 =head2 munge_uri <uri> <orig_uri>
 
-Takes exactly the same options as callbacks to C<URI::Find> although it actually uses 
-C<URI::Find::Schemeless::Stricter>.
+Takes exactly the same options as callbacks to C<URI::Find> although
+it actually uses C<URI::Find::Schemeless::Stricter>.
 
-As such you should be wary if overriding that the uri may not have a scheme. This 
+As such you should be wary if overriding that the uri may not have a
+scheme. This
 
     $uri->scheme('http') unless defined $uri->scheme;
 
 solves that particular problem (for various values of solve)
 
-Currently just turns uris into simple clickable links 
+Currently just turns uris into simple clickable links
 
-    www.foo.com 
+    www.foo.com
 
 becomes
 
     <a href="http://www.foo.com">www.foo.com</a>
-
 
 
 Should be overridden if you want different behaviour.
@@ -183,9 +182,11 @@ sub munge_uri {
     return "<a href='$uri'>$orig_uri</a>";
 }
 
-=pod
+1;
 
-=head1 TODO 
+__END__
+
+=head1 TODO
 
 Strip html out of html mails?
 
@@ -194,13 +195,10 @@ Defang javascript and display html in line?
 
 =head1 COPYING
 
-(c)opyright the Siesta Development Team
+Copyright 2003, the Siesta Development Team
 
 =head1 SEE ALSO
 
 L<URI::Find::Schemeless::Stricter>, L<Email::Find>
 
 =cut
-
-
-1;

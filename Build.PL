@@ -4,7 +4,7 @@ use Siesta::Build;
 
 my $build = Siesta::Build->new(
     module_name  => "Mariachi",
-    sign         => 1,
+    dynamic_config => 1,
     license      => 'perl',
     script_files => [ 'mariachi' ],
     requires     => {
@@ -21,6 +21,7 @@ my $build = Siesta::Build->new(
     },
    );
 
+warn "we currently install templates into /usr/local/mariachi/templates.  this will be customizable in a future release\n";
 $build->{config}{__extras_destination} = '/usr/local/mariachi';
 $build->{config}{__extras_from} = ['templates'];
 
