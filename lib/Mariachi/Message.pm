@@ -38,8 +38,6 @@ sub new {
     my $source = shift;
     my $self = $class->SUPER::new($source) or return;
 
-    $self->walkedover(0);
-
     $self->filename($self->_filename);
     $self->from($self->_from);
     return $self;
