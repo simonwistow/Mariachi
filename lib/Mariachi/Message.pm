@@ -16,6 +16,28 @@ sub walkover {
     return;
 }
 
+sub _filename {
+    my $self = shift;
+
+    my $filename = md5_base64( $self->header('message-id') ).".html";
+    $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
+    # This isn't going to create collisions as the 64 characters used are:
+    # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
+    return $filename;
+}
+
+sub _from {
+    my $self = shift;
+
+    # from is a sanitised mail address
+    my $from = $self->header('from');
+    $from =~ s/<.*>//;
+    $from =~ s/\@\S+//;
+    $from =~ s/\s+\z//;
+
+    return $from;
+}
+
 sub new {
     my $class = shift;
     my $source = shift;
@@ -23,19 +45,8 @@ sub new {
 
     $self->walkedover(0);
 
-    my $filename = md5_base64( $self->header('message-id') ).".html";
-    $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
-    # This isn't going to create collisions as the 64 characters used are:
-    # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
-    $self->filename($filename);
-
-    # from is a sanitised mail address
-    my $from = $self->header('from');
-    $from =~ s/<.*>//;
-    $from =~ s/\@\S+//;
-    $from =~ s/\s+\z//;
-    $self->from($from);
-
+    $self->filename($self->_filename);
+    $self->from($self->_from);
     return $self;
 }
 

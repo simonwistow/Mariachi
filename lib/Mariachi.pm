@@ -9,7 +9,8 @@ use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper;
 use base 'Class::Accessor::Fast';
 
-our $VERSION = 0.1;
+use vars '$VERSION';
+$VERSION = 0.1;
 
 __PACKAGE__->mk_accessors( qw( messages threader input output ) );
 
