@@ -56,7 +56,7 @@ sub new {
 
 sub _make_fake_id {
     my $self = shift;
-    my $hash = md5_hex( $self->header('from').$self->epoch_date );
+    my $hash = substr( md5_hex( $self->header('from').$self->date ), 0, 8 );
     return "$hash\@made_up";
 }
 
@@ -100,23 +100,25 @@ sub first_sentence {
     my $self = shift;
 
     # get all the lines of the sigless body
-    foreach (split /$/m,$self->body_sigless) {
+    foreach (split /$/m, $self->body_sigless) {
         # blank lines, euurgh
         next if /^\s*$/;
         # quotes (we don't count quoted From's)
         next if /^\s*>(?!From)/;
         # skip obvious attribution
         next if /^\s*On (Mon|Tue|Wed|Thu|Fri|Sat|Sun)/i;
-		next if /^\s*.+=? wrote:/i;
+        next if /^\s*.+=? wrote:/i;
 
-		# skip signed messages
-		next if /^\s*-----/;
+        # skip signed messages
+        next if /^\s*-----/;
 
         # sort of munged Froms
         s/^>From/From/;
+        s/^\n+//;
         return $_;
     }
 }
+memoize('first_sentence');
 
 =head2 ->body_sigless
 
@@ -141,8 +143,7 @@ Returns the stripped sig.
 sub sig {
     my $self = shift;
     my (undef, $sig) = split /^-- $/m, $self->body, 2;
-
-    $sig =~ s/^\n//;
+    $sig =~ s/^\n// if $sig;
     return $sig;
 }
 

@@ -6,15 +6,18 @@
 		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
 		[% END %]
 		[% thread.message.subject | html %]
-		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]<br />
-		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i></small>
+		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
+		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i><br />
+		[% thread.message.first_sentence | html%]</small>
 	[% ELSE %]
 		[% IF this ; "<b>" ; ELSE %]
 		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
 		[% END %]
-		[% thread.message.first_sentence | html %] 
+		[% thread.message.from | html %] 
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
-		<i>[% date.format(thread.message.epoch_date) %]</i>
+		<i>[% date.format(thread.message.epoch_date) %]</i><br />
+		<small>[% thread.message.first_sentence | html %]</small>
+	
 	[% END %]
 [% ELSE %]
 	(no message)
