@@ -118,12 +118,12 @@ sub order_children {
     eval { $self->child->order_children };
     eval { $self->next->order_children };
 
-    my @neworder = Email::Thread::Mariachi::_sort( $self->children );
+    my @children = $self->children;
+    return if @children < 2;
 
+    my @neworder = Email::Thread::Mariachi::_sort( @children );
     my $walk = $self->child( shift @neworder );
-    while (scalar @neworder) {
-        $walk = $walk->next( shift @neworder );
-    }
+    while (@neworder) { $walk = $walk->next( shift @neworder ) }
     $walk->next(undef) if $walk;
 }
 
