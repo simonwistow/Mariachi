@@ -1,3 +1,10 @@
+0.51    Tuesday 2nd September, 2003
+	Template tweaks - apply the anonymising mariachi filter to subject
+	lines
+
+	Correct a MANIFEST booboo and ship templates/css.tt2
+
+
 0.50    Friday 29th August, 2003
 	Split some code out into Text::Original
 

@@ -14,7 +14,7 @@ use File::Basename;
 use base 'Class::Accessor::Fast';
 
 use vars '$VERSION';
-$VERSION = '0.50';
+$VERSION = '0.51';
 
 __PACKAGE__->mk_accessors( qw( config messages rootset
                                start_time last_time tt ) );

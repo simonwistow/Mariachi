@@ -24,6 +24,7 @@ lib/Mariachi/Message.pm
 lib/Template/Plugin/Mariachi.pm
 inc/Siesta/Build.pm
 mariachi
+templates/css.tt2
 templates/date.tt2
 templates/header.tt2
 templates/index.tt2
