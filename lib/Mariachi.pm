@@ -23,7 +23,20 @@ sub load_messages {
     my $folder = Mariachi::Folder->new( $self->input )
       or die "Unable to open ".$self->input;
 
-    $self->messages( [ $folder->messages ] );
+    $| = 1;
+    my $count = 0;
+    my @msgs;
+    while (my $msg = $folder->next_message) {
+        push @msgs, $msg;
+
+        if (1) {
+            # XXX experimental - zero the bodies. see if we get any speed back
+            $msg->body_set('');
+            print "\r$count messages" if ++$count % 100 == 0;
+        }
+    }
+    print "\n";
+    $self->messages( \@msgs );
 }
 
 sub sanitise_messages {
@@ -45,27 +58,35 @@ sub sanitise_messages {
 sub thread {
     my $self = shift;
 
+    $Mail::Thread::nosubject = 1;
+
     my $threader = Email::Thread->new( @{ $self->messages } );
     $self->threader($threader);
     $threader->thread;
+}
 
+sub order {
+    my $self = shift;
 
     my $sub = sub {
         sort {
             $a->topmost->message->epoch_date <=> $b->topmost->message->epoch_date
         } @_;
     };
-    $threader->order( $sub );
+
+    $self->threader->order( $sub );
+}
+
+sub thread_check {
+    my $self = shift;
 
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
-    if (0) {
-        my %mails = map { $_ => 1 } @{ $self->messages };
-        $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } )
-          for $threader->rootset;
-        die "Didn't see ".Dumper [ keys %mails ]
-          if %mails;
-    }
+    my %mails = map { $_ => 1 } @{ $self->messages };
+    $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } )
+      for $self->threader->rootset;
+    die "Didn't see ".Dumper [ keys %mails ]
+      if %mails;
 }
 
 sub generate {
@@ -190,14 +211,15 @@ sub perform {
     my $start = [gettimeofday];
 
     $self->load_messages;
-    print "\n";
     #$self->sanitise_messages;
 
-    print scalar @{ $self->messages }, " messages loaded in ",
+    print "messages loaded in ",
       tv_interval( $start )," seconds\n";
     $start = [gettimeofday];
 
     $self->thread;
+    #$self->order;
+    #$self->thread_check;
 
     print "and threaded in ", tv_interval( $start ), " seconds\n";
     $start = [gettimeofday];
@@ -213,11 +235,6 @@ use Mariachi::Message;
 use Email::Folder;
 use base 'Email::Folder';
 
-$| = 1;
-my $count = 0;
-sub bless_message {
-    print "\r$count messages" if ++$count % 100 == 0;
-    Mariachi::Message->new($_[1]);
-}
+sub bless_message { Mariachi::Message->new($_[1]) }
 
 1;
