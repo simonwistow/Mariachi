@@ -118,6 +118,22 @@ $config->define("refresh", {
    });
 
 
+=head2 -v --reverse
+
+By default, mariachi renders the most recent messages on the forst page of
+the archive, and later messages later on in the archive. This flag reverses
+this behaviour, placing the earliest messages on the first page of the
+archive. 
+
+=cut
+
+$config->define("reverse", {
+    ALIAS    => 'v',
+    DEFAULT  => 0,
+    ARGCOUNT => ARGCOUNT_NONE
+   });
+
+
 =head2 --nolurker
 
 Disable lurker output

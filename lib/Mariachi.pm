@@ -208,6 +208,11 @@ sub order {
     @rootset = sort {
         $b->topmost->message->epoch_date <=> $a->topmost->message->epoch_date
     } @rootset;
+    
+    # And optionally reverse the order
+    @rootset = reverse(@rootset)
+      if $self->config->reverse;
+
     $self->rootset( \@rootset );
 }
 
