@@ -83,6 +83,41 @@ sub header_set {
 }
 
 
+=head2 ->first_sentence
+
+Returns the first non blank, none quoted line of the body of the email.
+
+It will guess at attribution lines and skip them as well.
+
+It will return super cited lines. This is the super-citers'
+fault, not ours.
+
+It won't catch all types of attribution lines;
+
+=cut
+
+sub first_sentence {
+    my $self = shift;
+
+    # get all the lines of the sigless body
+    foreach (split /$/m,$self->body_sigless) {
+        # blank lines, euurgh
+        next if /^\s*$/;
+        # quotes (we don't count quoted From's)
+        next if /^\s*>(?!From)/;
+        # skip obvious attribution
+        next if /^\s*On (Mon|Tue|Wed|Thu|Fri|Sat|Sun)/i;
+		next if /^\s*.+=? wrote:/i;
+
+		# skip signed messages
+		next if /^\s*-----/;
+
+        # sort of munged Froms
+        s/^>From/From/;
+        return $_;
+    }
+}
+
 =head2 ->body_sigless
 
 Returns the body with the signature (defined as anything

@@ -12,7 +12,7 @@
 		[% IF this ; "<b>" ; ELSE %]
 		<a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
 		[% END %]
-		[% thread.message.from | html %] 
+		[% thread.message.first_sentence | html %] 
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
 		<i>[% date.format(thread.message.epoch_date) %]</i>
 	[% END %]
