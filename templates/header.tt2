@@ -5,6 +5,11 @@
   body {
     color: #444444;
     background-color: #FFFFFF;
+    font-family: Verdana, Geneva, Arial, Helvetica;
+  }
+  .title {
+    font-size: 15px; 
+    font-weight: bold;
   }
   .headers {
     border: 1px solid black;
