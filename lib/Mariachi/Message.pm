@@ -72,6 +72,36 @@ sub header_set {
     $self->_header->{ lc $hdr } = shift;
 }
 
+
+=head2 ->body_sigless
+
+Returns the body with the signature (defined as anything 
+after "\n-- \n") removed.
+
+=cut 
+
+sub body_sigless {
+	my $self    = shift;
+	my ($body, undef) = split /^-- $/m, $self->body, 2;
+
+	return $body;
+}
+
+=head2 ->sig
+
+Returns the stripped sig.
+
+=cut
+
+sub sig {
+    my $self    = shift;
+    my (undef, $sig) = split /^-- $/m, $self->body, 2;
+
+    return $sig;
+}
+
+
+
 =head2 ->from
 
 A privacy repecting version of the From: header.
