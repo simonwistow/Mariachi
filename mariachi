@@ -2,6 +2,7 @@
 use strict;
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
+use Data::Dumper;
 
 my $start = [gettimeofday];
 
@@ -22,7 +23,6 @@ my @mails = do {
 # this should clean that up
 my %names;
 for my $mail (@mails) {
-    next; # but it doesn't, we lose messages from the index?
     for (qw( references in_reply_to )) {
         my $hdr = $mail->$_() or next;
         my $before = $hdr;
@@ -40,11 +40,10 @@ $threader->thread;
 
 $_->order_children for $threader->rootset;
 
-# (in)sanity test
+# Mail::Thread (in)sanity test
 if (1) {
     my %mails = map { $_ => 1 } @mails;
     $_->recurse_down( sub { delete $mails{ $_[0]->message || '' } } ) for $threader->rootset;
-    use Data::Dumper;
     die "Didn't see ".Dumper [ keys %mails ]
       if %mails;
 }
@@ -59,6 +58,14 @@ my $tt = Template->new( RECURSION => 1 );
 $tt->process('index.tt2',
              { threads => [ $threader->sorted_rootset ] },
              "$output/index.html") or die $tt->error;
+
+# tt (in) sanity test
+if (1) {
+    my @unwalked = grep { !$_->walkedover } @mails;
+    my @ids = map { $_->header('message-id') } @unwalked;
+    die "Didn't walk over ".(Dumper \@ids) . @ids . " messages"
+      if @ids;
+}
 
 for my $mail (@mails) {
     $tt->process('message.tt2',
@@ -132,7 +139,7 @@ use Class::Accessor::Fast;
 use Digest::MD5 qw(md5_base64);
 
 use base qw(Email::Simple Class::Accessor::Fast);
-BEGIN { Message->mk_accessors(qw(filename from)) };
+BEGIN { Message->mk_accessors(qw(filename from walkedover)) };
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
