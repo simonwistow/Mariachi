@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use_ok('Mariachi::Message');
 
 my $m = Mariachi::Message->new(<<'MAIL');
@@ -17,12 +17,14 @@ isa_ok( $m, 'Mariachi::Message' );
 
 is( $m->header('from'), 'Doc Brown <doc@inventors>', "get the from header" );
 is( $m->from,           'Doc Brown', "sanitised from" );
+is( $m->date,           'Sat, 12 November 1955 22:02:00' );
+is( $m->subject,        'Time Travel' );
 is( $m->filename,       '1955/11/12/51cf7416.html');
 is( $m->body,           "I have a hunch\n");
 is( $m->body_sigless,   "I have a hunch\n");
 is( $m->sig,            undef);
 
-my $m2 = my $m = Mariachi::Message->new(<<'MAIL');
+my $m2 = Mariachi::Message->new(<<'MAIL');
 From: x@y
 Date: z
 
