@@ -18,9 +18,9 @@
 <pre>[% message.body | html %]</pre>
 
 [% INCLUDE prevnext.tt2 %]
-<div class=threads>
+<ul class="threads">
 [% PROCESS thread.tt2 %]
-</div>
+</ul>
 
 </body>
 </html>

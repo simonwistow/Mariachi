@@ -1,7 +1,11 @@
-<li class=thread>
+<li class="thread">
 [% IF thread.message %]
-  [% IF thread.message == message %]<b>You are here:</b>[% END %]
-  <a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">[% thread.message.subject | html %]</a><br />
+  [% IF thread.message == message ; "<b>" ; ELSE %]
+  <a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">
+  [% END %]
+  [% thread.message.subject | html %]
+  [% IF thread.message == message ; "</b>" ; ELSE ; "</a>" ; END %]<br />
+
   <small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i></small>
 [% ELSE %]
   (message not available)

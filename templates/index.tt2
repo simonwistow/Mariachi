@@ -6,13 +6,13 @@
 
 [% PROCESS pagenav.tt2 %]
 
-<ul>
 [% FOREACH root = threads %]
-  <li class=thread><ul class=threads>
+<ul class="threads">
     [% INCLUDE thread.tt2 thread=root %]
-  </ul></li>
-[% END %]
 </ul>
+
+[% END %]
+
 [% PROCESS pagenav.tt2 %]
 
 <p>Generated at [% date.format %] by mariachi</p>
