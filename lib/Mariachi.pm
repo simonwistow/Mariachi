@@ -443,7 +443,6 @@ sub perform {
     $self->generate;        $self->_bench("generate");
 }
 
-
 package Mariachi::Folder;
 use Mariachi::Message;
 use Email::Folder;
@@ -452,3 +451,26 @@ use base 'Email::Folder';
 sub bless_message { Mariachi::Message->new($_[1]) }
 
 1;
+
+__END__
+
+=head1 AUTHORS
+
+This code was written as part of the Siesta project and includes code
+from:
+
+Richard Clamp, <richardc@unixbeard.net>
+Simon Wistow, <>
+Tom Insam, <>
+
+More information about the Siesta project can be found online at
+http://siesta.unixbeard.net/
+
+=head1 COPYRIGHT
+
+Copyright 2003 The Siesta Project
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
