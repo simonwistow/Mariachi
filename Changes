@@ -4,8 +4,9 @@ HEAD	Unreleased
 	Tweaks to thread output - only display subject where it's
 	different from the previous one
 
-	INCOMPATIBLE CHANGE: Lowercased file names for aesthetic
-	reasons. This will break links for existing installations.
+	INCOMPATIBLE CHANGE: Filename generation has changed from
+	using md5_base64 to md5_hex for aesthetic reasons. This will
+	break links for existing installations.
 
 0.2	Friday 2nd May, 2003
 	fixed distribution - now includes Siesta::Build

@@ -2,7 +2,7 @@ use strict;
 package Mariachi::Message;
 use Email::Simple;
 use Class::Accessor::Fast;
-use Digest::MD5 qw(md5_base64);
+use Digest::MD5 qw(md5_hex);
 use Date::Parse qw(str2time);
 use Memoize;
 
@@ -114,13 +114,8 @@ sub filename {
     $msgid = $self->header_set('message-id', $self->_make_fake_id)
       unless $msgid;
 
-    my $filename = substr( md5_base64( $msgid ), 0, 8 ).".html";
-    $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
-    # This isn't going to create collisions as the 64 characters used are:
-    # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
-
-        # then lc for appearences sake
-    return $self->day."/".lc($filename);
+    my $filename = substr( md5_hex( $msgid ), 0, 8 ).".html";
+    return $self->day."/".$filename;
 }
 memoize('filename');
 
