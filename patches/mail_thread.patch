@@ -24,7 +24,7 @@ diff -urN Mail-Thread-2.1/MANIFEST Mail-Thread-2.1_richardc/MANIFEST
 +t/testbox-8
 diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 --- Mail-Thread-2.1/Thread.pm	2003-03-31 12:08:58.000000000 +0100
-+++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-12 20:24:16.000000000 +0100
++++ Mail-Thread-2.1_richardc/Thread.pm	2003-04-12 20:58:07.000000000 +0100
 @@ -2,8 +2,8 @@
  
  use 5.00503;
@@ -56,15 +56,6 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
      $id =~ s/^<([^>]+)>.*/$1/; # We expect this not to have <>s
      return $id;
  }
-@@ -50,7 +53,7 @@
- sub _dump {
-     for (@_) {
-         print "\n$_ (";
--        print $_->messageid.") [".$_->subject."] has father ".eval{$_->parent};
-+        print $_->id.") [".$_->subject."] has father ".eval{$_->parent};
-         print ", child ".eval{$_->child}." and sibling ".eval{$_->next};
-         print "\n";
-         for my $tag (qw(parent child next)) {
 @@ -65,8 +68,14 @@
      $self->{rootset} = [ grep { !$_->parent } values %{$self->{id_table}} ];
      delete $self->{id_table};
@@ -73,7 +64,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 -        unless $Mail::Thread::noprune;
 +    unless ($Mail::Thread::noprune) {
 +        local $debug = 0;
-+        my $fakeroot = $self->_container_class->new( id => 'fakeroot' );
++        my $fakeroot = $self->_container_class->new( 'fakeroot' );
 +        $fakeroot->set_children( $self->rootset );
 +        $self->_prune_empties($fakeroot, 0);
 +        @{$self->{rootset}} = $fakeroot->children; 
@@ -82,22 +73,17 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
      delete $self->{seen};
      #$self->_group_set_bysubject();
      $self->_finish();
-@@ -84,12 +93,11 @@
-         debug "  Found an existing container for $id, ", $cont->subject,"\n";
-     } else {
-         debug "  Creating something new to hold $id\n";
--        $cont= $self->_container_class->new($id);
-+        $cont= $self->_container_class->new(id => $id);
+@@ -87,9 +96,7 @@
+         $cont= $self->_container_class->new($id);
          $self->{id_table}{$id} = $cont;
      }
 -    $cont->messageid($id);
-+    $cont->id($id);
      return $cont;
 -
  }
  
  sub _container_class { "Mail::Thread::Container" }
-@@ -118,7 +126,7 @@
+@@ -118,7 +125,7 @@
          }
          if (defined $prev) { $prev->add_child($this_container) }
          debug "Done with this message!\n----\n";
@@ -106,12 +92,9 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
              _dump( values %{$self->{id_table}} );
          }
      }
-@@ -136,34 +144,44 @@
-     my $level = shift;
-     do { debug "Stuffed!"; return () } if $self->{seen}{$cont}++;
+@@ -138,45 +145,55 @@
      debug " "x$level;
--    debug "Looking at ".$cont->messageid."\n";
-+    debug "Looking at ".$cont->id."\n";
+     debug "Looking at ".$cont->messageid."\n";
  
 -    my @new_children;
 -    for my $ctr ($cont->children) {
@@ -144,7 +127,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
 +
 +       my @children = $walk->children;
 +       debug " "x$level;
-+       debug "Looking at ".$walk->id." ".@children." children\n";
++       debug "Looking at ".$walk->messageid." ".@children." children\n";
 +
 +       if (!$walk->message and !@children) {
 +           debug "No message and no children - killing\n";
@@ -177,18 +160,22 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  }   
  
  package Mail::Thread::Container;
-@@ -175,8 +193,8 @@
+ use Carp qw(carp confess croak cluck);
+ 
+-sub new { my $self = shift; bless { @_ }, $self; }
++sub new { my $self = shift; bless { id => shift }, $self; }
+ 
+ sub message { $_[0]->{message} = $_[1] if @_ == 2; $_[0]->{message} }
  sub child   { $_[0]->{child}   = $_[1] if @_ == 2; $_[0]->{child}   }
  sub parent  { $_[0]->{parent}  = $_[1] if @_ == 2; $_[0]->{parent}  }
  sub next    { $_[0]->{next}    = $_[1] if @_ == 2; $_[0]->{next}    }
--sub messageid { $_[0]->{id}      = $_[1] if @_ == 2; $_[0]->{id}      }
+ sub messageid { $_[0]->{id}      = $_[1] if @_ == 2; $_[0]->{id}      }
 -sub subject { eval { $_[0]->message->head->get("Subject") } }
-+sub id      { $_[0]->{id}      = $_[1] if @_ == 2; $_[0]->{id}      }
 +sub subject { eval { my $s = $_[0]->message->head->get("Subject") ||''; chomp $s; $s } }
  
  sub add_child {
      my ($self, $child) = @_;
-@@ -245,6 +263,13 @@
+@@ -245,6 +262,13 @@
      return @children;
  }
  
@@ -202,7 +189,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
  sub recurse_down {
      my %seen;
      my $do_it_all;
-@@ -254,9 +279,9 @@
+@@ -254,9 +278,9 @@
          $seen{$self}++;
          $callback->($self);
  
@@ -214,7 +201,7 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          $do_it_all->($self->child, $callback) if $self->child;
  
      };
-@@ -282,7 +307,7 @@
+@@ -282,7 +306,7 @@
  
      sub dump_em {
          my ($self, $level) = @_;
@@ -223,6 +210,15 @@ diff -urN Mail-Thread-2.1/Thread.pm Mail-Thread-2.1_richardc/Thread.pm
          if ($self->message) {
              print $self->message->head->get("Subject") , "\n";
          } else {
+@@ -343,7 +367,7 @@
+ 
+ Returns the message held in this container, if we have one.
+ 
+-=head2 id
++=head2 messageid
+ 
+ Returns the message ID for this container. This will be around whether we
+ have the message or not, since some other message will have referred to it
 diff -urN Mail-Thread-2.1/t/1.t Mail-Thread-2.1_richardc/t/1.t
 --- Mail-Thread-2.1/t/1.t	2003-03-10 13:06:56.000000000 +0000
 +++ Mail-Thread-2.1_richardc/t/1.t	2003-04-11 22:39:57.000000000 +0100
@@ -390,7 +386,7 @@ diff -urN Mail-Thread-2.1/t/4.t Mail-Thread-2.1_richardc/t/4.t
  }
 diff -urN Mail-Thread-2.1/t/5.t Mail-Thread-2.1_richardc/t/5.t
 --- Mail-Thread-2.1/t/5.t	2003-03-25 16:03:02.000000000 +0000
-+++ Mail-Thread-2.1_richardc/t/5.t	2003-04-11 22:44:18.000000000 +0100
++++ Mail-Thread-2.1_richardc/t/5.t	2003-04-12 21:01:49.000000000 +0100
 @@ -1,7 +1,5 @@
 -BEGIN { eval "use Mail::Box::Manager;"; 
 -    if ($@) { require Test::More; Test::More->import(skip_all =>
@@ -401,14 +397,9 @@ diff -urN Mail-Thread-2.1/t/5.t Mail-Thread-2.1_richardc/t/5.t
  
  use Test::More tests => 2;
  use_ok("Mail::Thread");
-@@ -17,18 +15,14 @@
- our %stuff;
- 
- sub new {
--    my ($class, $id) = @_;
--    if (!$stuff{$id})  { $stuff{$id} = $class->SUPER::new($id); }
-+    my ($class, undef, $id) = @_;
-+    if (!$stuff{$id})  { $stuff{$id} = $class->SUPER::new(id => $id); }
+@@ -20,15 +18,11 @@
+     my ($class, $id) = @_;
+     if (!$stuff{$id})  { $stuff{$id} = $class->SUPER::new($id); }
      return $stuff{$id};
 -
  }
