@@ -118,6 +118,19 @@ $config->define("refresh", {
    });
 
 
+=head2 --nolurker
+
+Disable lurker output
+
+=cut
+
+$config->define("lurker", {
+    DEFAULT  => 1,
+    ARGCOUNT => ARGCOUNT_NONE
+   });
+
+
+
 # define the system and the user config files
 my $sys  = "/usr/local/mariachi/mariachi.conf";
 my $user = "$ENV{HOME}/.mariachi";

@@ -417,6 +417,8 @@ sub generate_pages {
 sub generate_lurker {
     my $self = shift;
 
+    return unless $self->config->lurker;
+
     my $l = Mariachi::Lurker->new;
     $self->generate_pages(
         'lurker.tt2', 'lurker.html',
