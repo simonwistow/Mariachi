@@ -5,20 +5,15 @@ use Class::Accessor::Fast;
 use Digest::MD5 qw(md5_base64);
 
 use base qw(Email::Simple Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from walkedover index next last));
+__PACKAGE__->mk_accessors(qw( filename from index next last));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
 
-sub walkover {
-    my $self = shift;
-    $self->walkedover( $self->walkedover + 1 );
-    return;
-}
-
 sub _filename {
     my $self = shift;
 
+    # TODO - assign a messageid where none currently exists
     my $filename = md5_base64( $self->header('message-id') ).".html";
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
