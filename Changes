@@ -1,6 +1,14 @@
-0.2.1 - lowercase filenames
-    
-Lowercase file names for aesthetic reasons. This will break existing
-installations but, hey, it's a 0.2.x release and our existing user base 
-is practically zero.
+HEAD	Unreleased
+	Fixed Message->from
 
+	Tweaks to thread output - only display subject where it's
+	different from the previous one
+
+	INCOMPATIBLE CHANGE: Lowercased file names for aesthetic
+	reasons. This will break links for existing installations.
+
+0.2	Friday 2nd May, 2003
+	fixed distribution - now includes Siesta::Build
+
+0.1	Friday 2nd May, 2003
+	initial CPAN release
