@@ -460,9 +460,9 @@ __END__
 This code was written as part of the Siesta project and includes code
 from:
 
-Richard Clamp, <richardc@unixbeard.net>
-Simon Wistow, <simon@thegestalt.org>
-Tom Insam, <>
+Richard Clamp <richardc@unixbeard.net>
+Simon Wistow <simon@thegestalt.org>
+Tom Insam <tom@jerakeen.org>
 
 More information about the Siesta project can be found online at
 http://siesta.unixbeard.net/
