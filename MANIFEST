@@ -11,7 +11,7 @@ t/testmess/docbrown.paragraph
 t/testmess/docbrown.sentence
 t/testmess/hey.lines
 t/testmess/hey.message
-t/testmess/hey.paragraph
+t/testmess/hey.paragraph.TODO
 t/testmess/hey.sentence
 t/testmess/idiot.lines
 t/testmess/idiot.message
