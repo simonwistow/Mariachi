@@ -107,12 +107,20 @@ sub thread_check {
 
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
-    my %mails = map { $_ => $_ } @{ $self->messages };
+    my %mails = map { $_ => 1 } @{ $self->messages };
     $_->iterate_down( sub { delete $mails{ $_[0]->message || '' } } )
       for $self->threader->rootset;
 
-    die "Didn't see ".(scalar keys %mails)." messages"
-      if %mails
+    return unless %mails;
+    my $sub = sub {
+        my ($cont, $depth) = @_;
+        print "  " x $depth, $cont->messageid, "\n";
+        print "yeep\n" if $mails{$cont->message || ''};
+    };
+    $_->iterate_down( $sub )
+      for $self->threader->rootset;
+    undef $sub;
+    die "Didn't see ".(scalar keys %mails)." messages";
 }
 
 # okay, so we want to walk the containers in the following order,
