@@ -3,11 +3,10 @@
 
 [%# set up pagination %]
 [% thispage = again || 1 ; nextpage = thispage + 1 ; 
-   filename = thispage == 1 ? 'lurker.html' : 'lurker' _ thispage _ '.html';
-   '' %]
+   filename = thispage == 1 ? 'lurker.html' : 'lurker' _ thispage _ '.html' %]
 [% USE page = Page(threads.size, perpage, thispage) %] 
-[% IF thispage == page.last_page ; again(0) ; ELSE ; again(nextpage) ; END %]
-[% file( filename ); '' %]
+[% IF thispage == page.last_page ; set_again(0) ; ELSE ; set_again(nextpage) ; END %]
+[% set_file( filename ) %]
 
 <h1>[% list_title %]</h1>
 
@@ -40,12 +39,12 @@
                 [% ELSE %] 
                     [% img = 'message-terminal' %]
                 [% END %]
-            	<td><a href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="*" border="0"></a></td>
+            	<td width="24"><a href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="*" border="0"></a></td>
             [% ELSE %]
                 [% IF cell == '+' %][%# may really be a tee, or a corner %]
                     [% cell = ( row.$tmp == '+' || row.$tmp == '-' ) ? 'T' : 'L' %]
 		[% END %]
-		<td><img src="images/[% mapping.$cell %].png" height="24" width="24" alt="[% cell %]"></td>
+		<td width="24"><img src="images/[% mapping.$cell %].png" height="24" width="24" alt="[% cell %]"></td>
 	    [% END %]
         [% END %]
         <td><img src="images/blank.png" width="48" height="24"></td>
@@ -56,9 +55,9 @@
         [% FOREACH cell = row %]
 	    [% x = loop.count - 1 %]
 	    [% IF cell != ' ' && root.$y && root.$y.$x && root.$y.$x != ' ' && root.$y.$x != '-' %][%# something beneath %]
-               <td background="images/vertical.png">&nbsp;</td>
+               <td width="24" background="images/vertical.png">&nbsp;</td>
 	    [% ELSE %]
-	       <td></td>
+	       <td width="24"></td>
             [% END %]
         [% END %]
             <td></td>

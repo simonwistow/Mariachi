@@ -371,8 +371,10 @@ sub generate_pages {
         my $file = $spool;
         $tt->process($template,
                      { @_,
-                       again      => sub { @_ and $again = shift; $again },
-                       file       => sub { @_ and $file  = shift; $file } },
+                       again     => sub { $again },
+                       file      => sub { $file  },
+                       set_again => sub { $again = shift; return },
+                       set_file  => sub { $file  = shift; return }, },
                      $self->output . "/$$.tmp" )
           or die $tt->error;
         print "$$.tmp -> $file\n";
