@@ -85,7 +85,6 @@ sub from {
     $from =~ s/<.*>//;
     $from =~ s/\@\S+//;
     $from =~ s/\s+\z//;
-    $self->_from($from);
     return $from;
 }
 memoize('from');
