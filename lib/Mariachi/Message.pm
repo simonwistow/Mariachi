@@ -9,41 +9,37 @@ use Memoize;
 
 use base 'Mariachi::DBI';
 __PACKAGE__->set_up_later(
-    rawmail    => 'Email::Simple',
-    body       => '',
-    epoch_date => '',
+    rawmail         => 'Email::Simple',
+    hdr_message_id  => '',
+    hdr_from        => '',
+    hdr_subject     => '',
+    hdr_date        => '',
+    hdr_references  => '',
+    hdr_in_reply_to => '',
+    body            => '',
+    epoch_date      => '',
    );
 __PACKAGE__->add_trigger( before_create => \&pre_create );
 
+#these are just sops
+__PACKAGE__->columns( TEMP => qw( prev next root day month year ) );
+
 # copy things out of the email::simple message and into the columns
-sub pre_create {
-    my $data = shift;
-    warn "pre_create";
+sub _blat {
+    my $thing = shift;
+    $thing =~ tr/-/_/;
+    return lc $thing;
 }
 
-=for later
+sub pre_create {
+    my $data = shift;
 
-    $self->linked({});
-    $self->_header({});
-    $self->header_set( $_, $mail->header($_) ) for
+    my $mail = $data->{rawmail};
+    $data->{ 'hdr_' . _blat( $_ ) } = $mail->header($_) for
       qw( message-id from subject date references in-reply-to );
-    $self->body( $mail->body );
 
-    $self->header_set('message-id', $self->_make_fake_id)
-      unless $self->header('message-id');
-
-    # this is a bit ugly to be here but much quicker than making it a
-    # memoized lookup
-    my @date = localtime $self->epoch_date(str2time( $self->header('date') )
-                                             || 0);
-    my @ymd = ( $date[5] + 1900, $date[4] + 1, $date[3] );
-    $self->ymd(\@ymd);
-    $self->day(   sprintf "%04d/%02d/%02d", @ymd );
-    $self->month( sprintf "%04d/%02d", @ymd );
-    $self->year(  sprintf "%04d", @ymd );
-
-    return $self;
-
+    $data->{body}       = $mail->body;
+    $data->{epoch_date} = str2time( $data->{hdr_date} ) || 0;
 }
 
 =head1 NAME
@@ -61,15 +57,15 @@ your standard constructor
 =cut
 
 sub new {
-    die "don't look at me";
+    my $class = shift;
+    my $mail  = Email::Simple->new(shift) or return;
+
+    my $msgid = $mail->header('message-id') or die "gotta have a message-id";
+    my ($old) = $class->search({ hdr_message_id => $msgid });
+    return $old if $old;
+    return $class->create({ rawmail => $mail });
 }
 
-
-sub _make_fake_id {
-    my $self = shift;
-    my $hash = substr( md5_hex( $self->header('from').$self->date ), 0, 8 );
-    return "$hash\@made_up";
-}
 
 =head2 ->body
 
@@ -84,13 +80,14 @@ compatibility with Email::Simple
 
 sub header {
     my $self = shift;
-    $self->_header->{ lc shift() };
+    my $meth = "hdr_" . _blat( shift );
+    $self->$meth();
 }
 
 sub header_set {
     my $self = shift;
-    my $hdr = shift;
-    $self->_header->{ lc $hdr } = shift;
+    my $meth = "hdr_" . _blat( shift );
+    $self->$meth( shift );
 }
 
 =head2 ->first_lines
