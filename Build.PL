@@ -14,6 +14,7 @@ my $build = Siesta::Build->new(
         'Mail::Thread::Chronological'    => 0,
         'Email::Thread'   => 0,
         'Template'        => 0,
+        'Template::Plugin::Page' => 0,
         'Date::Parse'     => 0,
         'Class::Accessor' => 0,
         'Email::Find'     => 0,

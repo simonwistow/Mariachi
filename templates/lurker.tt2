@@ -1,6 +1,13 @@
 [%# lurker-style thread indexes %]
 [% PROCESS header.tt2 title=list_title %]
 
+[%# set up pagination %]
+[% thispage = again || 1 ; nextpage = thispage + 1 ; 
+   filename = thispage == 1 ? 'lurker.html' : 'lurker' _ thispage _ '.html' %]
+[% USE page = Page(threads.size, perpage, thispage) %] 
+[% IF thispage == page.last_page ; again(0) ; ELSE ; again(nextpage) ; END %]
+[% file( filename ) %]
+
 <h1>[% list_title %]</h1>
 
 [%     mapping = { ' ' => 'blank',
@@ -13,7 +20,7 @@
 %]
 
 
-[% FOREACH root = threads %]
+[% FOREACH root = page.splice(threads) %]
 <h2>[% root.0.0.topmost.message.subject | html%]</h2>
 <table border="0" cellpadding="0" cellspacing="0" width="100%">[% y = 0 %]
     [% FOREACH row = root %]
