@@ -42,7 +42,7 @@
             	<td width="24"><a href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="*" border="0"></a></td>
             [% ELSE %]
                 [% IF cell == '+' %][%# may really be a tee, or a corner %]
-                    [% cell = ( row.$tmp == '+' || row.$tmp == '-' ) ? 'T' : 'L' %]
+                    [% cell = row.$tmp.match('[+{-]') ? 'T' : 'L' %]
 		[% END %]
 		<td width="24"><img src="images/[% mapping.$cell %].png" height="24" width="24" alt="[% cell %]"></td>
 	    [% END %]
