@@ -12,6 +12,7 @@ my $build = Siesta::Build->new(
         'Module::Build'   => '0.18',
         'Mail::Thread'    => '2.2',
         'Email::Thread'   => 0,
+        'List::Util'      => 0,
         'Template'        => 0,
         'Date::Parse'     => 0,
         'Class::Accessor' => 0,

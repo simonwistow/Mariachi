@@ -8,7 +8,7 @@ use Memoize;
 
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw( body _header index next prev root
-                              epoch_date day month year ymd
+                              epoch_date day month year ymd cell
                             ));
 
 =head1 NAME
