@@ -20,3 +20,4 @@
 [% END %]
 
 [% PROCESS pagenav.tt2 %]
+[% PROCESS footer.tt2 %]

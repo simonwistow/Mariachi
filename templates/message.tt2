@@ -39,5 +39,4 @@ There's stuff above here</li>
 [% INCLUDE thread.tt2 depth=0 %]
 </ul>
 
-</body>
-</html>
+[% PROCESS footer.tt2 %]

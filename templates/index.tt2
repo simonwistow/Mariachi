@@ -13,8 +13,4 @@
 [% END %]
 
 [% PROCESS pagenav.tt2 %]
-
-<p>Generated at [% date.format %] by mariachi</p>
-
-</body>
-</html>
+[% PROCESS footer.tt2 %]
