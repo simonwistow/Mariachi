@@ -78,14 +78,20 @@ sub generate {
     my $page = 0;
     my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
+    my %touched_threads;
     while (@threads) {
         warn "Index page " . ($page + 1) . "\n";
         # @chunk is the chunk of threads on this page
         my @chunk = splice(@threads, 0, $self->threads_per_page);
-        $_->recurse_down(sub { eval {
-            $_[0]->message->page( $page );
-            $_[0]->message->root( $_ );
-        } })
+        $_->recurse_down(sub {
+                             my $mail = $_[0]->message or return;
+
+                             $mail->page( $page );
+                             $mail->root( $_ );
+
+                             $touched_threads{ $_ } = $_
+                               unless -e $self->output."/".$mail->filename;
+                         })
           for @chunk;
 
         $tt->process('index.tt2',
@@ -98,44 +104,23 @@ sub generate {
         $page++;
     }
 
-    # tt (in) sanity test - we should have walked over everything in
-    # the mbox once and only once in generating the thread index
-    if (0) {
-        my @unwalked = grep { $_->walkedover != 1 } @{ $self->messages };
-        my @ids = map { [ $_->header('message-id'), $_->from, $_->subject, $_->walkedover ] } @unwalked;
-        die "Stange walk for ".(Dumper \@ids) . @ids . " messages"
-          if @ids;
-    }
-
     warn "Message pages\n";
     my $count = 0;
-	my %threads;
-    for my $mail (@{ $self->messages }) {
+    $_->recurse_down( sub {
+                          my $mail = $_[0]->message or return;
+                          warn "$count\n" if ++$count % 50 == 0;
 
-		unless (-e $self->output."/".$mail->filename or !defined $mail->root) {
-			$threads{ $mail->root } = $mail->root; 
-        	warn "$count\n" if ++$count % 20 == 0;
-		}
-	}
-
-	$self->{tt} = $tt;
-	$_->recurse_down( sub { $self->render($_[0]->message) } ) for values %threads
-
+                          $tt->process('message.tt2',
+                                       { thread  => $mail->root,
+                                         message => $mail,
+                                         headers => [ 'Subject', 'Date' ],
+                                       },
+                                       $self->output."/".$mail->filename)
+                            or die $tt->error;
+                      } )
+      for values %touched_threads;
 }
 
-
-sub render {
-     my $self = shift;
-	 my $mail = shift || return;
-
-
- 	 $self->{tt}->process('message.tt2',
-                     { thread  => $mail->root,
-                       message => $mail,
-                       headers => [ 'Subject', 'Date' ],
-                     },
-                     $self->output."/".$mail->filename) or die $self->{tt}->error;
-}
 
 sub perform {
     my $self = shift;
