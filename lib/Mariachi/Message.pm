@@ -15,7 +15,10 @@ sub date    { $_[0]->header('date') }
 sub _filename {
     my $self = shift;
 
-    my $msgid =  $self->header('message-id') || $self->_make_fake_id();
+    my $msgid = $self->header('message-id');
+    $msgid = $self->header_set('message-id', $self->_make_fake_id)
+      unless $msgid;
+
     my $filename = substr( md5_base64( $msgid ), 0, 8 ).".html";
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
@@ -65,8 +68,8 @@ sub in_reply_to {
 
 sub _make_fake_id {
     my $self = shift;
-    my ($from,$domain) = split /\@/, $self->_from();
-    my $date           = $self->epoch_date();
+    my ($from,$domain) = split /\@/, $self->_from;
+    my $date           = $self->epoch_date;
     my $hash           = md5_base64("$from$date");
     return "$hash\@$domain";
 }
