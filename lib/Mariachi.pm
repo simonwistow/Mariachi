@@ -132,16 +132,17 @@ remove duplicates from C<messages>
 sub dedupe {
     my $self = shift;
 
-    my %seen;
-    my @new;
+    my (%seen, @new, $dropped);
     for my $mail (@{ $self->messages }) {
         my $msgid = $mail->header('message-id');
         if ($seen{$msgid}++) {
-            warn "dropping duplicate: $msgid\n";
+            print "dropping duplicate: $msgid\n";
+            $dropped++;
             next;
         }
         push @new, $mail;
     }
+    print "dropped $dropped messages\n";
     $self->messages(\@new);
 }
 
@@ -176,12 +177,21 @@ C<messages>
 
 =cut
 
+sub _shuffle {
+    my $array = shift;
+    my $i;
+    for ($i = @$array; --$i; ) {
+        my $j = int rand ($i+1);
+        @$array[$i,$j] = @$array[$j,$i];
+    }
+}
+
 sub thread {
     my $self = shift;
-
+    _shuffle $self->messages;
     my $threader = Email::Thread->new( @{ $self->messages } );
     $threader->thread;
-    $self->rootset( [ $threader->rootset ] );
+    $self->rootset( [ grep { $_->topmost } $threader->rootset ] );
 }
 
 =head2 ->order
@@ -194,12 +204,13 @@ sub order {
     my $self = shift;
 
     my @rootset = @{ $self->rootset };
-    $_->order_children( sub {
-                            sort {
-                                $a->topmost->message->epoch_date <=>
-                                $b->topmost->message->epoch_date
-                            } @_
-                        }) for @rootset;
+    $_->order_children(
+        sub {
+            sort {
+                eval { $a->topmost->message->epoch_date } <=>
+                eval { $b->topmost->message->epoch_date }
+              } @_
+          }) for @rootset;
 
     # we actually want the root set to be ordered latest first
     @rootset = sort {
@@ -232,8 +243,6 @@ sub sanity {
     #print STDERR "\n";
 
     return unless %mails;
-    die "\nDidn't see ".(scalar keys %mails)." messages";
-
     print join "\n", map {
         my @ancestors;
         my $x = $_->container;
@@ -241,15 +250,18 @@ sub sanity {
         my $last;
         while ($x) {
             if ($seen{$x}++) { push @ancestors, "$x ancestor loop!\n"; last }
-            my $extra = '';
+            my $extra = $x->{id};
             $extra .= " one-way"
               if $last && !grep { $last == $_ } $x->children;
-            push @ancestors, $x."$extra";
+            push @ancestors, $x." $extra";
             $last = $x;
             $x = $x->parent;
         }
         $_->header("message-id"), @ancestors
     } values %mails;
+    die "\nDidn't see ".(scalar keys %mails)." messages";
+
+
 }
 
 =head2 ->strand
