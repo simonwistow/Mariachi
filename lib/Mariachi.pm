@@ -63,13 +63,12 @@ sub thread {
 sub order {
     my $self = shift;
 
-    my $sub = sub {
-        sort {
-            $a->topmost->message->epoch_date <=> $b->topmost->message->epoch_date
-        } @_;
-    };
-
-    $self->threader->order( $sub );
+    $_->order_children( sub {
+                            sort {
+                                $a->topmost->message->epoch_date <=>
+                                $b->topmost->message->epoch_date
+                            } @_
+                        }) for $self->threader->rootset;
 }
 
 sub thread_check {
@@ -118,7 +117,7 @@ sub generate {
         for my $root (@chunk) {
             my $sub;
             $sub = sub {
-                my $c = shift or return;
+                my $c = shift;
 
                 if (my $mail = $c->message) {
                     # let the message know where it's linked from, and
@@ -142,8 +141,8 @@ sub generate {
                     push @{ $date_indexes{ $mail->month } }, $mail;
                     push @{ $date_indexes{ $mail->day } }, $mail;
                 }
-                $sub->($c->child);
-                $sub->($c->next);
+                $sub->($c->child) if $c->child;
+                $sub->($c->next)  if $c->next;
             };
             $sub->($root);
         }
