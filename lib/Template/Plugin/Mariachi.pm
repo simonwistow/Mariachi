@@ -8,7 +8,6 @@ use Carp;
 
 $FILTER_NAME = "mariachi";
 
-
 use URI::Find::Schemeless::Stricter;
 use Email::Find;
 
@@ -31,8 +30,8 @@ Template::Plugin::Mariachi - gussy up email for the Mariachi mailing list archiv
 =head1 DESCRIPTION
 
 Used by the mariachi mailing list archiver to make emails more
-suitable for display as html by hiding email addresses and making
-links clickable.
+suitable for display as html by hiding email addresses and turning
+bare urls into links.
 
 Theoretically this could be done with some other C<Template::Toolkit>
 plugins but this is easier for us.
@@ -41,7 +40,7 @@ plugins but this is easier for us.
 
 =head2 [% USE Mariachi %]
 
-Initialise the Mariahci filter in your template. Can take options like so :
+Initialise the Mariahci filter in your template. Can take options like so:
 
     [% USE Mariachi( uris => 0, email => 1) %]
 
@@ -81,7 +80,6 @@ sub filter {
     my ($self, $text, @args) = @_;
     my $config = (ref $args[-1] eq 'HASH')? pop @args : {};
 
-
     if ($self->_should_do('email', $config)) {
         find_emails($text, \&munge_email);
     }
@@ -90,12 +88,11 @@ sub filter {
         URI::Find::Schemeless::Stricter->new(\&munge_uri)->find(\$text);
     }
 
-	if ($self->_should_do('quoting', $config)) {
-		munge_quoting(\$text);
-	}
+    if ($self->_should_do('quoting', $config)) {
+        munge_quoting(\$text);
+    }
 
     return $text;
-
 }
 
 
@@ -104,7 +101,6 @@ sub _should_do {
     my $key    = shift || croak("Must pass a key");
     my $config = shift || {};
 
-
     # if it's defined in the local config then use that value
     return $config->{$key}             if defined $config->{$key};
     # otherwise check in the initialised config
@@ -112,9 +108,6 @@ sub _should_do {
 
     # otherwise we're on by default
     return 1;
-
-
-
 }
 
 
@@ -126,12 +119,9 @@ Takes a reference to some text and returns it munged for quoting
 
 
 sub munge_quoting {
-	my $textref = shift;
+    my $textref = shift;
 
     $$textref =~ s!^(\s*&gt;.+)$!<i>$1</i>!gm;
-
-
-
 }
 
 =head2 munge_email <email> <orig_email>
@@ -140,12 +130,11 @@ Takes exactly the same options as callbacks to
 C<Email::Find>. Currently turns all non period characters in the
 domain part of an email address and turns them into 'x's such that :
 
-        simon@thegestalt.org
+ simon@thegestalt.org
 
 becomes
 
-        simon@xxxxxxxxxx.xxx
-
+ simon@xxxxxxxxxx.xxx
 
 Should be overridden if you want different behaviour.
 
@@ -155,16 +144,13 @@ sub munge_email {
     my ($email, $orig_email) = @_;
 
     $orig_email =~ s{
-                    \@(.+)$                  # get everything after the '@' symbol
-                }{
-                    "@".
-                    join '.',                # join stuff back together with a dot after
-                    map { "x" x length($_) } # making each part into 'x's
-                    split /\./, $1           # and splitting stuff apart on dots
-                                             # map, split join and grep. Making Perl like 'Memento'
-                                             # notation polish reverse like, fun it's
-                 }ex;
-
+                     \@(.+)$                    # everything after the '@'
+                    }{
+                     "@".
+                     join '.',                  # join together with dots
+                       map { "x" x length($_) } # make each part into 'x's
+                         split /\./, $1         # split stuff apart on dots
+                     }ex;
 
     return $orig_email;
 }
@@ -177,17 +163,17 @@ it actually uses C<URI::Find::Schemeless::Stricter>.
 As such you should be wary if overriding that the uri may not have a
 scheme. This
 
-    $uri->scheme('http') unless defined $uri->scheme;
+ $uri->scheme('http') unless defined $uri->scheme;
 
 solves that particular problem (for various values of solve)
 
 Currently just turns uris into simple clickable links
 
-    www.foo.com
+ www.foo.com
 
 becomes
 
-    <a href="http://www.foo.com">www.foo.com</a>
+ <a href="http://www.foo.com">www.foo.com</a>
 
 
 Should be overridden if you want different behaviour.
