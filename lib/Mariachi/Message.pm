@@ -14,7 +14,7 @@ sub date    { $_[0]->header('date') }
 sub _filename {
     my $self = shift;
 
-    my $msgid =  $self->header('message-id') || $self->_gen_fake_id();
+    my $msgid =  $self->header('message-id') || $self->_make_fake_id();
     my $filename = substr( md5_base64( $msgid ), 0, 8 ).".html";
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
