@@ -3,7 +3,7 @@
 	[% IF thread.message %]
 		<a href="[% thread.message.filename %]">[% thread.message.subject %]</a><br><small>[% thread.message.from %] <i>[% thread.message.date %]</i> </small>
 	[% ELSE %]
-		(no message) [%# thread.messageid %]
+		(no message) [% thread.id %]
 	[% END %]
 	[% IF thread.child %]
 <ul>

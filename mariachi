@@ -10,12 +10,26 @@ my $start = [gettimeofday];
 my $maildir = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
 
-my %names;
 my @mails = map {
     open my $fh, "<$_" or die "open: '$_' $!";
     Message->new($fh);
 } <$maildir/cur/*>, <$maildir/new/*>;
 
+# some messages have been near mail2news gateways, which means that
+# some message ids get munged like so: <$group/$message_id>
+
+# this should clean that up
+my %names;
+for my $mail (@mails) {
+    #next; # but it doesn't, we lose messages from the index?
+    for (qw( references in_reply_to )) {
+        my $hdr = $mail->$_() or next;
+        my $before = $hdr;
+        $hdr =~ s{<[^>]*?/}{<}g or next;
+        #print "$_ $before$_: $hdr";
+        $mail->$_($hdr);
+    }
+}
 
 print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
 $start = [gettimeofday];
@@ -61,6 +75,17 @@ sub subject {
     $self->head->get('subject');
 }
 
+sub references {
+    my $self = shift;
+    $self->head->replace('references', shift) if @_;
+    $self->head->get('references');
+}
+
+sub in_reply_to {
+    my $self = shift;
+    $self->head->replace('in-reply-to', shift) if @_;
+    $self->head->get('in-reply-to');
+}
 
 sub date {
     my $self = shift;
