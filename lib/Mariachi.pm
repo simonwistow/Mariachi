@@ -271,12 +271,25 @@ return a new structure, like the time-based threading of Lurker
 
 =cut
 
+# identify the co-ordinates of something
+sub _cell {
+    my $cells = shift;
+    my $find = shift;
+    for (my $y = 0; $y < @$cells; ++$y) {
+        for (my $x = 0; $x < @{ $cells->[$y] }; ++$x) {
+            my $here = $cells->[$y][$x];
+            return [$y, $x] if ref $here && $here == $find;
+        }
+    }
+    return;
+}
+
 sub time_thread {
     my $self = shift;
 
     my @results;
     for my $thread (@{ $self->rootset }) {
-        # show them in the old order, and take a copy of the messages
+        # show them in th old order, and take a copy of the messages
         # while we're at it
         my @messages;
         $thread->iterate_down(
@@ -300,7 +313,6 @@ sub time_thread {
             # the first one - [0][0]
             unless (@cells) {
                 $cells[$row][0] = $c;
-                $c->message->cell([$row,0]);
                 next;
             }
 
@@ -311,22 +323,20 @@ sub time_thread {
             }
 
             unless ($first_parent && $first_parent->message &&
-                      $first_parent->message->cell ) {
+                      _cell(\@cells, $first_parent) ) {
                 # just drop it randomly to one side, since it doesn't
                 # have a clearly identifiable parent
                 my $col = (max map { scalar @$_ } @cells );
                 $cells[$row][$col] = $c;
-                $c->message->cell([$row,$col]);
                 next ROW;
             }
             my $col;
-            my ($parent_row, $parent_col) = @{ $first_parent->message->cell };
+            my ($parent_row, $parent_col) = @{ _cell( \@cells, $first_parent ) };
             if ($first_parent->child == $c) {
                 # if we're the first child, then we directly beneath
                 # them
                 $col = $parent_col;
                 $cells[$row][$col] = $c;
-                $c->message->cell([$row,$col]);
             }
             else {
                 # otherwise, we have to shuffle accross into the first
@@ -352,12 +362,32 @@ sub time_thread {
                 #   |   d
                 #   e
 
-                $col = (max map { scalar @$_ } @cells );
+                # okay, figure out what the max col is
+                my $max_col = (max map { scalar @$_ } @cells );
+                if (grep { $cells[$parent_row][$_] } $parent_col+1..$max_col) {
+                    # okay.  doing the simplest thing would have
+                    # crossed the streams, do more work.
+
+                    # we want to end up in $parent_col + 1 and
+                    # everything in that column needs to get shuffled
+                    # over one
+                    $col = $parent_col + 1;
+                    for my $r (@cells[0..$row -1]) {
+                        next if @$r < $col;
+                        my $here = $r->[$col] || '';
+                        splice(@$r, $col, 0, $here eq '+' ? '-' : '');
+                    }
+                }
+                else {
+                    $col = $max_col;
+                }
+
+                # the path is now clear, add the line in
                 $cells[$row][$col] = $c;
-                $c->message->cell([$row,$col]);
                 for ($parent_col..$col) {
                     $cells[$parent_row][$_] ||= '-';
                 }
+
                 $cells[$parent_row][$col] = '+';
             }
             # link with vertical dashes
