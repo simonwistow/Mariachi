@@ -10,7 +10,7 @@
 
 [% IF message.linked.lurker %][<a href="[% base %][% message.linked.lurker %]#[% message.filename %]">lurker</a>][% END %]
 
-[Date index for <a href="[% base %][% message.year %]">[% message.ymd.0 %]</a>/<a href="[% base %][% message.month %]">[% message.ymd.1 %]</a>/<a href="[% base %][% message.day %]">[% message.ymd.2 %]</a>]
+[Date index for <a href="[% base %][% message.year %]">[% message.ymd.0 | format('%04d') %]</a>/<a href="[% base %][% message.month %]">[% message.ymd.1 | format('%02d') %]</a>/<a href="[% base %][% message.day %]">[% message.ymd.2 | format('%02d') %]</a>]
 </p>
 
 <div class=headers>
