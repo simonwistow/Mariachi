@@ -41,7 +41,9 @@ sub new {
     # save the non-html attachments and present them in some way
     my $body;
     for ($mail->parts) {
-        if ($_->content_type =~ m{^text/plain\b}) {
+        my $type = $_->content_type;
+
+        if (!$type || $type =~ m{^text/plain\b}) {
             $body .= $_->body;
         }
         else {
