@@ -7,15 +7,10 @@ use Date::Parse qw(str2time);
 use Text::Original ();
 use Memoize;
 
-use base 'Mariachi::DBI::Delay';
-__PACKAGE__->slacker_table( qw(
-    hdr_message_id hdr_from hdr_subject hdr_date
-    hdr_references hdr_in_reply_to
-    body epoch_date day month year
-  ));
-__PACKAGE__->set_up_table( __PACKAGE__->moniker );
-__PACKAGE__->columns( TEMP => qw( prev next root ) );
-
+use base qw(Class::Accessor::Fast);
+__PACKAGE__->mk_accessors(qw( body _header next prev root
+                              epoch_date day month year ymd linked
+                            ));
 
 =head1 NAME
 
@@ -31,38 +26,41 @@ your standard constructor
 
 =cut
 
-
-sub _header_column {
-    my $thing = shift;
-    $thing =~ tr/-/_/;
-    return "hdr_" . lc $thing;
-}
-
-
 sub new {
     my $class = shift;
+    my $source = shift;
 
-    my $mail  = Email::Simple->new(shift) or return;
-    my $msgid = $mail->header('message-id') or die "gotta have a message-id";
-    my ($old) = $class->search({ hdr_message_id => $msgid });
-    return $old if $old;
+    my $self = $class->SUPER::new;
+    my $mail = Email::Simple->new($source) or return;
 
-    my $data = {};
-    $data->{ _header_column $_ } = $mail->header($_) for
+    $self->linked({});
+    $self->_header({});
+    $self->header_set( $_, $mail->header($_) ) for
       qw( message-id from subject date references in-reply-to );
+    $self->body( $mail->body );
 
-    $data->{body}       = $mail->body;
-    $data->{epoch_date} = str2time( $data->{hdr_date} ) || 0;
+    $self->header_set('message-id', $self->_make_fake_id)
+      unless $self->header('message-id');
 
-    my @date = localtime $data->{epoch_date};
+    # this is a bit ugly to be here but much quicker than making it a
+    # memoized lookup
+    my @date = localtime $self->epoch_date(str2time( $self->header('date') )
+                                             || 0);
     my @ymd = ( $date[5] + 1900, $date[4] + 1, $date[3] );
-    $data->{day}   = sprintf "%04d/%02d/%02d", @ymd;
-    $data->{month} = sprintf "%04d/%02d", @ymd;
-    $data->{year}  = sprintf "%04d", @ymd;
+    $self->ymd(\@ymd);
+    $self->day(   sprintf "%04d/%02d/%02d", @ymd );
+    $self->month( sprintf "%04d/%02d", @ymd );
+    $self->year(  sprintf "%04d", @ymd );
 
-    return $class->create($data);
+    return $self;
 }
 
+
+sub _make_fake_id {
+    my $self = shift;
+    my $hash = substr( md5_hex( $self->header('from').$self->date ), 0, 8 );
+    return "$hash\@made_up";
+}
 
 =head2 ->body
 
@@ -71,23 +69,20 @@ sub new {
 =head2 ->header_set
 
 C<body>, C<header>, and C<header_set> are provided for interface
-compatibility with Email::Simple.  Note that only a small subset of
-headers are available.
+compatibility with Email::Simple
 
 =cut
 
 sub header {
     my $self = shift;
-    my $meth = _header_column shift;
-    $self->$meth();
+    $self->_header->{ lc shift() };
 }
 
 sub header_set {
     my $self = shift;
-    my $meth = _header_column shift;
-    $self->$meth( shift );
+    my $hdr = shift;
+    $self->_header->{ lc $hdr } = shift;
 }
-
 
 =head2 ->first_lines
 
@@ -115,7 +110,6 @@ sub first_sentence {
     return Text::Original::first_sentence( $self->body );
 }
 
-
 =head2 ->body_sigless
 
 Returns the body with the signature (defined as anything
@@ -130,7 +124,6 @@ sub body_sigless {
     return $body;
 }
 
-
 =head2 ->sig
 
 Returns the stripped sig.
@@ -143,6 +136,7 @@ sub sig {
     $sig =~ s/^\n// if $sig;
     return $sig;
 }
+
 
 
 =head2 ->from
@@ -162,7 +156,6 @@ sub from {
     return $from;
 }
 memoize('from');
-
 
 =head2 ->subject
 
@@ -199,6 +192,8 @@ __END__
 =head2 ->epoch_date
 
 The date header pared into epoch seconds
+
+=head2 ->ymd
 
 =head2 ->day
 

@@ -55,18 +55,17 @@ The source mail folder
 =cut
 
 # define the command line options
-my $config = AppConfig->new({
-    PEDANTIC => 1,
-    GLOBAL   => {
-        ARGCOUNT => ARGCOUNT_ONE,
-    },
-    ERROR    => sub {
-        my $format = shift;
-        $format = "mariachi: $format\n";
-        print STDERR sprintf $format, @_;
-        exit;
-    },
-});
+my $config = AppConfig->new({ PEDANTIC => 1,
+                              GLOBAL   => {
+                                  ARGCOUNT => ARGCOUNT_ONE,
+                              },
+                              ERROR    => sub {
+                                  my $format = shift;
+                                  $format = "mariachi: $format\n";
+                                  print STDERR sprintf $format, @_;
+                                  exit;
+                              },
+                             });
 
 $config->define("input", { ALIAS => 'i' });
 
@@ -200,9 +199,6 @@ unless (defined $config->name) {
     $config->name("no list name");
 }
 
-Mariachi::DBI::Delay->set_db(
-    Main => 'dbi:SQLite:'.$config->output.'/mariachi.db'
-   );
 $config->class->new( config  => $config,
                      threads_per_page => 20,
                     )

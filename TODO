@@ -9,18 +9,3 @@ an install guide.  maybe some PRish bumf benchmarking it in comparison
 with mhonarc/pipermail.  a logo.  how to install with your existing
 mailman system.  finished templates
 
-
-=head1 Class::DBI groovyness
-
-SQLite, drop it in the directory of output chmod 600, or let that get
-overridden (and maybe be another database altogether like mysql)
-
-main problem is set_up_table will want to have a table there at
-requite Mariachi::Message time, but we won't know where to put one
-until after argument parsing is done
-
-mark the threading columns as Essential so that they get pulled in all
-at once
-
-dynamic page generation via a cgi?
-
