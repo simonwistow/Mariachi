@@ -341,9 +341,10 @@ sub copy_files {
 
 sub init_tt {
     my $self = shift;
+
     $self->tt(
         Template->new(
-            INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
+            INCLUDE_PATH => join(':', reverse @{ $self->config->templates }),
             RECURSION => 1
            )
        );

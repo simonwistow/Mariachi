@@ -83,11 +83,18 @@ $config->define("name");
 
 =head2 -t, --templates I<directory>
 
-The set of templates to use
+Add additional directories to scan in looking for templates
+
+Defaults to I<templates>, I</usr/local/mariachi/templates>
+
+Any values will be added to the head of that list.
 
 =cut
 
-$config->define("templates", { ARGCOUNT => ARGCOUNT_LIST });
+$config->define("templates", {
+    DEFAULT  => [ qw( /usr/local/mariachi/templates templates ) ],
+    ARGCOUNT => ARGCOUNT_LIST,
+});
 
 =head2 -f --force
 
