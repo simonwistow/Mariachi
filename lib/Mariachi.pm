@@ -201,6 +201,12 @@ sub order {
                                 $b->topmost->message->epoch_date
                             } @_
                         }) for $self->threader->rootset;
+
+    # we actually want the root set to be ordered latest first
+    # this is naughty, breaking encapsulation like this
+    @{ $self->threader->{rootset} } = sort {
+        $b->topmost->message->epoch_date <=> $a->topmost->message->epoch_date
+    } $self->threader->rootset;
 }
 
 =head2 ->sanity
@@ -322,10 +328,7 @@ sub generate {
         RECURSION => 1
        );
 
-    # we actually want the root set to be ordered latest first
-    my @threads = sort {
-        $b->topmost->message->epoch_date <=> $a->topmost->message->epoch_date
-    } $self->threader->rootset;
+    my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
