@@ -55,6 +55,7 @@ for my $mail (@mails) {
     $tt->process('message.tt2',
                  { thread  => find_root_thread($threader, $mail),
                    message => $mail,
+                   headers => [ 'Subject', 'Date' ],
                  },
                  "$output/".$mail->filename) or die $tt->error;
 }

@@ -1,12 +1,20 @@
 <html>
 <head><title>[% message.subject | html %]</title></head>
 <body>
-From: [% message.from | html %]<br>
-Date: [% message.date | html %]<br>
-Subject: [% message.subject | html %]<br>
-<hr>
-<pre>[% message.body.join("") | html %]</pre>
-<hr>
+<h1>[% message.subject | html %]</h1>
+<hr />
+<ul>
+<li><i>From:</i>[% message.from %]
+[% FOREACH hdr = headers %]
+<li><i>[% hdr %]:</i>[% message.header(hdr) | html %]
+[% END %]
+</ul>
+<hr />
+<pre>[% message.body | html %]</pre>
+<hr />
+<h2>Thread:</h2>
+<ul>
 [% PROCESS _subthread %]
+</ul>
 </body>
 </html>
