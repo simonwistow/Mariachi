@@ -1,7 +1,7 @@
 =head1 Build.PL files installer
 
-the one in Albazo looks like just the one I've been imagining for
-Siesta, if slightly more fully featured.  must steal
+customise location, place value as default into a tiny generated 
+stub - probably from mariachi.PL
 
 =head1 Configuration
 
