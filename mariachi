@@ -140,22 +140,33 @@ sub find_message_id {
 
 package Message;
 use Email::Simple;
+use Class::Accessor::Fast;
 use Digest::MD5 qw(md5_base64);
 
-use base qw(Email::Simple);
+use base qw(Email::Simple Class::Accessor::Fast);
+BEGIN { Message->mk_accessors(qw(filename from)) };
 
-sub filename {
-    my $self = shift;
-    my $foo = md5_base64( $self->as_string ).".html";
-    $foo =~ tr{/+}{_-}; # + isn't as portably safe as -
+sub subject { $_[0]->header('subject') }
+sub date    { $_[0]->header('date') }
+
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new(@_) or return;
+
+    my $filename = md5_base64( $self->as_string ).".html";
+    $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
-    $foo;
-}
+    $self->filename($filename);
 
-sub subject {
-    my $self = shift;
-    $self->header('subject');
+    # from is a sanitised mail address
+    my $from = $self->header('from');
+    $from =~ s/<.*>//;
+    $from =~ s/\@\S+//;
+    $from =~ s/\s+\z//;
+    $self->from($from);
+
+    return $self;
 }
 
 sub references {
@@ -168,16 +179,3 @@ sub in_reply_to {
     @_ ? $self->header_set('in-reply-to', @_) : $self->header('in-reply-to');
 }
 
-sub date {
-    my $self = shift;
-    $self->header('date');
-}
-
-sub from {
-    my $self = shift;
-    my $from = $self->header('from');
-    $from =~ s/<.*>//;
-    $from =~ s/\@\S+//;
-    $from =~ s/\s+\z//;
-    $from;
-}
