@@ -47,7 +47,7 @@
 				[% message = cell.message %]
 			[% ELSE %]
 				[% IF cell == '+' %] 
-					[% IF row.$tmp  && row.$tmp != ' ' %] 
+					[% IF row.$tmp == '+' || row.$tmp == '-' %] 
 						[% cell='T' %] 
 					[% ELSE %] 
 						[% cell='L' %] 
