@@ -7,7 +7,7 @@
 		[% IF this ; "<b>" ; ELSE %]
 		<a href="[% base %][% thread.message.filename %]">
 		[% END %]
-		[% thread.message.subject | html %]
+		[% thread.message.subject | html | mariachi %]
 		[% IF this ; "</b>" ; ELSE ; "</a>" ; END %]
 		<small>[% thread.message.from | html %] <i>[% date.format(thread.message.epoch_date) %]</i>[% context = mariachi.config.get('thread-context') ; IF context  %]<br />
 		[% thread.message.$context | html%][% END %]</small>

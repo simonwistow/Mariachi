@@ -1,7 +1,7 @@
 [% PROCESS header.tt2 title = message.subject %]
 [% USE Mariachi %]
 
-<h1>[% message.subject | html %]</h1>
+<h1>[% message.subject | html | mariachi %]</h1>
 
 <p>
 [<a href="[% base %][% message.prev.filename %]">prev</a>]
@@ -15,7 +15,7 @@
 
 <div class=headers>
 <b>From:</b> [% message.from | mariachi | html %]<br />
-<b>Subject:</b> [% message.subject | html %]<br />
+<b>Subject:</b> [% message.subject | mariachi | html %]<br />
 <b>Date:</b> [% date.format(message.epoch_date) %]<br />
 </div>
 

@@ -1,4 +1,5 @@
 [% PROCESS header.tt2 title=mariachi.config.name %]
+[% USE Mariachi %]
 
 <h1>[% mariachi.config.name %]</h1>
 [% PROCESS paginate.tt2 %]
