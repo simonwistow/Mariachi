@@ -15,7 +15,8 @@ sub _filename {
     my $self = shift;
 
     # TODO - assign a messageid where none currently exists
-    my $filename = md5_base64( $self->header('message-id') ).".html";
+    my $msgid =  $self->header('message-id');
+    my $filename = substr( md5_base64( $msgid ), 0, 8 ).".html";
     $filename =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
