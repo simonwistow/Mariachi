@@ -378,7 +378,7 @@ sub generate_pages {
                            my $page = $spool;
                            return $page if $n == 1;
                            --$n;
-                           $page =~ s/\./$n./;
+                           $page =~ s/\./_$n./;
                            return $page;
                        },
                        set_again => sub { $again = shift; return },
@@ -447,9 +447,18 @@ sub generate {
         }
 
         $tt->process('index.tt2',
-                     { threads => \@chunk,
-                       page => $page,
-                       pages => $pages,
+                     { all_threads => $self->rootset,
+                       threads => \@chunk,
+                       nthpage => sub {
+                           my $n    = shift;
+                           my $page = 'index.html';
+                           return $page if $n == 1;
+                           --$n;
+                           $page =~ s/\./_$n./;
+                           return $page;
+                       },
+                       perpage => $self->threads_per_page,
+                       again   => $page + 1,
                        list_title => $self->list_title,
                      },
                      $self->output . "/$index_file" )

@@ -2,6 +2,12 @@
 
 <h1>[% list_title %]</h1>
 
+[%# set up pagination %]
+[% thispage = again || 1 ; nextpage = thispage + 1 %]
+[% USE page = Page(all_threads.size, perpage, thispage) %] 
+[% IF thispage == page.last_page ; set_again(0) ; ELSE ; set_again(nextpage) ; END %]
+[% set_file( nthpage( thispage ) ) %]
+
 [% PROCESS pagenav.tt2 %]
 
 [% FOREACH root = threads %]
