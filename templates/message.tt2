@@ -21,9 +21,20 @@
 
 <pre>[% message.body | html | mariachi  %]</pre>
 
-[% INCLUDE prevnext.tt2 %]
+[%# INCLUDE prevnext.tt2 %]
+[%
+	maxdepth = 1 ;
+ 	thread = container ;
+	IF thread.parent ;
+		maxdepth = maxdepth + 1 ;
+		thread = thread.parent ;
+	END ;
+%]
+[% IF thread.parent %]
+There's stuff above here</li>
+[% END %]
 <ul class="threads">
-[% PROCESS thread.tt2 %]
+[% INCLUDE thread.tt2 depth=0 %]
 </ul>
 
 </body>

@@ -6,7 +6,7 @@
 
 [% FOREACH root = threads %]
 <ul class="threads">
-    [% INCLUDE thread.tt2 thread=root %]
+    [% INCLUDE thread.tt2 thread=root depth=0 %]
 </ul>
 
 [% END %]

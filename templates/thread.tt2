@@ -12,7 +12,11 @@
 [% END %]
 [% IF thread.child %]
   <ul>
-  [% INCLUDE thread.tt2 thread=thread.child %]
+	[% IF maxdepth && depth >= maxdepth %]
+<li>too deep to show</li>
+	[% ELSE %]
+		[% INCLUDE thread.tt2 thread=thread.child depth=depth+1 %]
+	[% END %]
   </ul>
 [% END %]
 </li>
