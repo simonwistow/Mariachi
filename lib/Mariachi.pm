@@ -399,6 +399,7 @@ sub generate_pages {
               mariachi  => $self,
               spool     => $spool,
               # callbacktastic
+              nthpage   => sub { $self->nthpage( shift, $spool ) },
               again     => sub { $again },
               file      => sub { $file  },
               set_again => sub { $again = shift; return },
