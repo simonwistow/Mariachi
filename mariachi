@@ -8,10 +8,13 @@ my $start = [gettimeofday];
 my $maildir = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
 
-my @mails = map {
-    open my $fh, "<$_" or die "open: '$_' $!";
-    Message->new($fh);
-} <$maildir/cur/*>, <$maildir/new/*>;
+my @mails = do {
+    local $/;
+    map {
+        open my $fh, "<$_" or die "open: '$_' $!";
+        Message->new(<$fh>);
+    } <$maildir/cur/*>, <$maildir/new/*>;
+};
 
 # some messages have been near mail2news gateways, which means that
 # some message ids get munged like so: <$group/$message_id>
@@ -32,7 +35,7 @@ for my $mail (@mails) {
 print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
 $start = [gettimeofday];
 
-my $threader = Mail::Thread::Mariachi->new( @mails );
+my $threader = Email::Thread::Mariachi->new( @mails );
 $threader->thread;
 
 $_->order_children for $threader->rootset;
@@ -68,12 +71,12 @@ sub find_root_thread {
     }
 }
 
-package Mail::Thread::Mariachi;
-use Mail::Thread(); # Ensure the module is actually installed and loaded.
-use base 'Mail::Thread';
+package Email::Thread::Mariachi;
+use Email::Thread (); # Ensure the module is actually installed and loaded.
+use base 'Email::Thread';
 use Date::Parse qw(str2time);
 
-sub _container_class { "Mail::Thread::Container::Mariachi" }
+sub _container_class { "Email::Thread::Container::Mariachi" }
 
 sub sorted_rootset {
     my $self = shift;
@@ -90,8 +93,8 @@ sub _sort {
     } @_;
 }
 
-package Mail::Thread::Container::Mariachi;
-use base 'Mail::Thread::Container';
+package Email::Thread::Container::Mariachi;
+use base 'Email::Thread::Container';
 
 sub order_children {
     my $self = shift;
@@ -100,7 +103,7 @@ sub order_children {
     eval { $self->child->order_children };
     eval { $self->next->order_children };
 
-    my @neworder = Mail::Thread::Mariachi::_sort( $self->children );
+    my @neworder = Email::Thread::Mariachi::_sort( $self->children );
 
     my $walk = $self->child( shift @neworder );
     while (scalar @neworder) {
@@ -136,15 +139,15 @@ sub find_message_id {
 }
 
 package Message;
-use Mail::Internet;
+use Email::Simple;
 use Digest::MD5 qw(md5_base64);
 
-use base qw(Mail::Internet);
+use base qw(Email::Simple);
 
 sub filename {
     my $self = shift;
     my $foo = md5_base64( $self->as_string ).".html";
-    $foo =~ tr{/+}{_-};	# + isn't as portably safe as -
+    $foo =~ tr{/+}{_-}; # + isn't as portably safe as -
     # This isn't going to create collisions as the 64 characters used are:
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
     $foo;
@@ -152,33 +155,27 @@ sub filename {
 
 sub subject {
     my $self = shift;
-    my $subject = $self->head->get('subject');
-    chomp $subject;
-    $subject;
+    $self->header('subject');
 }
 
 sub references {
     my $self = shift;
-    $self->head->replace('references', @_) if @_;
-    $self->head->get('references');
+    @_ ? $self->header_set('references', @_) : $self->header('references');
 }
 
 sub in_reply_to {
     my $self = shift;
-    $self->head->replace('in-reply-to', @_) if @_;
-    $self->head->get('in-reply-to');
+    @_ ? $self->header_set('in-reply-to', @_) : $self->header('in-reply-to');
 }
 
 sub date {
     my $self = shift;
-    my $date = $self->head->get('date');
-    chomp $date;
-    $date;
+    $self->header('date');
 }
 
 sub from {
     my $self = shift;
-    my $from = $self->head->get('from');
+    my $from = $self->header('from');
     $from =~ s/<.*>//;
     $from =~ s/\@\S+//;
     $from =~ s/\s+\z//;
