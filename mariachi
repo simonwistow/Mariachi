@@ -41,7 +41,7 @@ print "and threaded in ", tv_interval( $start ), " seconds\n";
 
 $start = [gettimeofday];
 
-my $tt = Template->new;
+my $tt = Template->new( RECURSION => 1 );
 
 $tt->process('index.tt2',
              { threads => [ $threader->rootset ] },
@@ -51,6 +51,7 @@ for my $mail (@mails) {
     $tt->process('message.tt2',
                  { threads => [ $threader->rootset ],
                    message => $mail,
+                   thread  => find_root_thread($threader, $mail),
                  },
                  "$output/".$mail->filename) or die $tt->error;
 }
@@ -58,6 +59,16 @@ for my $mail (@mails) {
 print "output generation took ", tv_interval( $start ), " seconds\n";
 
 exit 0;
+
+sub find_root_thread {
+    my $self = shift;
+    my $mail = shift;
+    my $cont = $self->{id_table}{ $self->_msgid($mail) };
+    while ($cont) {
+        return $cont if !$cont->parent;
+        $cont = $cont->parent;
+    }
+}
 
 package Message;
 use Mail::Internet;

@@ -1,23 +1,10 @@
-[% BLOCK subthread %]
-<li>
-	[% IF thread.message %]
-		<a href="[% thread.message.filename %]">[% thread.message.subject %]</a><br><small>[% thread.message.from %] <i>[% thread.message.date %]</i> </small>
-	[% ELSE %]
-		(no message) [% thread.id %]
-	[% END %]
-	[% IF thread.child %]
-<ul>
-	[% PROCESS subthread thread=thread.child level=level+1 %]
-</ul>
-	[% END %]
-</li>
-	[% IF thread.next %]
-		[% PROCESS subthread thread=thread.next level=level %]
-	[% END %]
-[% END %]
-
+<html><head></head>
+<body>
 <ul>
 [% FOREACH thread = threads %]
-	[% PROCESS subthread level=0 %]
+	[% PROCESS _subthread %]
 [% END %]
 </ul>
+<hr>
+Generated at XXX by mariachi
+</body>

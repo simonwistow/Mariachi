@@ -6,5 +6,7 @@ Date: [% message.date | html %]<br>
 Subject: [% message.subject | html %]<br>
 <hr>
 <pre>[% message.body.join("") | html %]</pre>
+<hr>
+[% PROCESS _subthread %]
 </body>
 </html>
