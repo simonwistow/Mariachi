@@ -177,6 +177,7 @@ C<messages>
 
 =cut
 
+# the Fisher-Yates shuffle from perlfaq4
 sub _shuffle {
     my $array = shift;
     my $i;
@@ -188,7 +189,7 @@ sub _shuffle {
 
 sub thread {
     my $self = shift;
-    _shuffle $self->messages;
+    #_shuffle $self->messages;
     my $threader = Email::Thread->new( @{ $self->messages } );
     $threader->thread;
     $self->rootset( [ grep { $_->topmost } $threader->rootset ] );
