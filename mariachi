@@ -77,7 +77,7 @@ mariachi
 
 =head1 SYNOPSIS
 
- mariachi --input input --output output_dir [ --title "list name" ]
+ mariachi --input input --output output_dir [ --title "list name" ] [--force]
 
 =head1 DESCRIPTION
 
@@ -109,6 +109,13 @@ You don't have to supply everything (as long as the required
 options are then passed on the command line).
 
 Options on the command line override options in the config files.
+
+The short versions of command line options are
+
+    --input  => -i
+    --output => -o
+    --force  => -f
+    --title  => -t
 
 =head1 AUTHORS
 
