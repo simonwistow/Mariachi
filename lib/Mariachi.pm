@@ -75,40 +75,45 @@ sub generate {
 
     my $tt = Template->new( INCLUDE_PATH => 'templates', RECURSION => 1 );
 
+    # okay, so we want to walk the containers in the following order,
+    # so that Message->next and Message->prev are easy to find
+    #
+    # -- 1
+    #    |-- 2
+    #    |-- 3
+    #    |   |-- 4
+    #    |   5
+    #    \-- 6
+    # -- 7
+    # I hate ascii art
+
     my $page = 0;
     my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my %touched_threads;
-    my $last_message_in_thread;
     while (@threads) {
         # @chunk is the chunk of threads on this page
-        my @chunk = splice(@threads, 0, $self->threads_per_page);
+        my @chunk = splice @threads, 0, $self->threads_per_page;
         my $index_file = $page ? "index_$page.html" : "index.html";
-        for (@chunk) {
-            $_->recurse_down(sub {
-                                 my $mail = $_[0]->message or return;
+        my $prev;
+        for my $root (@chunk) {
+            my $sub;
+            $sub = sub {
+                my $c = shift or return;
+                if (my $mail = $c->message) {
+                    $prev->next($mail) if $prev;
+                    $mail->last($prev);
+                    $prev = $mail;
 
-                                 $mail->index( $index_file );
+                    $mail->index( $index_file );
 
-                                 my $next = $_[0]->child || $_[0]->next;
-                                 my $parent = $_[0];
-                                 while ($parent and !$next) {
-                                     $parent = $parent->parent;
-                                     $next = $parent->next if $parent;
-                                 }
-                                 $mail->next($next->message) if $next;
-                                 $next->message->last($mail) if $next;
-
-                                 if ($last_message_in_thread) {
-                                     $last_message_in_thread->next($mail);
-                                     $mail->last($last_message_in_thread);
-                                     undef $last_message_in_thread;
-                                 }
-                                 $last_message_in_thread = $mail unless $next;
-
-                                 $touched_threads{ $_ } = $_
-                                   unless -e $self->output."/".$mail->filename;
-                             });
+                    $touched_threads{ $root } = $root
+                      unless -e $self->output."/".$mail->filename;
+                }
+                $sub->($c->child);
+                $sub->($c->next);
+            };
+            $sub->($root);
         }
 
         $tt->process('index.tt2',
