@@ -6,7 +6,7 @@ use Digest::MD5 qw(md5_base64);
 use Date::Parse qw(str2time);
 
 use base qw(Email::Simple Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from index next last));
+__PACKAGE__->mk_accessors(qw( filename from index next last epoch_date ));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
@@ -20,7 +20,7 @@ sub _filename {
     # This isn't going to create collisions as the 64 characters used are:
     # ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
 
-    my @date = localtime(str2time($self->date));
+    my @date = localtime $self->epoch_date;
     my $path = sprintf("%04d/%02d/%02d/", $date[5]+1900, $date[4]+1, $date[3]);
     return $path.$filename;
 }
@@ -42,6 +42,7 @@ sub new {
     my $source = shift;
     my $self = $class->SUPER::new($source) or return;
 
+    $self->epoch_date(str2time $self->header('date'));
     $self->filename($self->_filename);
     $self->from($self->_from);
     return $self;

@@ -4,7 +4,6 @@ use Class::Accessor::Fast;
 use Email::Thread;
 use Mariachi::Folder;
 use Template;
-use Date::Parse qw(str2time);
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper;
 use base 'Class::Accessor::Fast';
@@ -51,13 +50,13 @@ sub thread {
     $self->threader($threader);
     $threader->thread;
 
-    $threader->order( sub {
-                          # cache the dates
-                          $self->{date}->{$_} = str2time $_->topmost->message->date
-                            for @_;
-                          sort { $self->{date}->{$a} <=> $self->{date}->{$b} } @_;
-                      } );
 
+    my $sub = sub {
+        sort {
+            $a->topmost->message->epoch_date <=> $b->topmost->message->epoch_date
+        } @_;
+    };
+    $threader->order( $sub );
 
     # (in)sanity test - is everything in the original mbox in the
     # thread tree?
@@ -88,7 +87,9 @@ sub generate {
     # I hate ascii art
 
     # we actually want the root set to be ordered latest first
-    my @threads = sort { $self->{date}->{$b} <=> $self->{date}->{$a} } $self->threader->rootset;
+    my @threads = sort {
+        $b->topmost->message->epoch_date <=> $a->topmost->message->epoch_date
+    } $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
