@@ -13,7 +13,7 @@
 
 
 <div class=threads>
-<p><a href="[% IF message.page %]index_[% message.page %].html[% ELSE %]index.html[% END %]#[% message.filename %]">
+<p><a href="[% index %]#[% message.filename %]">
 thread index</a></p>
 
 [% PROCESS thread.tt2 %]

@@ -83,10 +83,11 @@ sub generate {
         warn "Index page " . ($page + 1) . "\n";
         # @chunk is the chunk of threads on this page
         my @chunk = splice(@threads, 0, $self->threads_per_page);
+        my $index_file = $page ? "index_$page.html" : "index.html";
         $_->recurse_down(sub {
                              my $mail = $_[0]->message or return;
 
-                             $mail->page( $page );
+                             $mail->index( $index_file );
                              $mail->root( $_ );
 
                              $touched_threads{ $_ } = $_
@@ -99,7 +100,7 @@ sub generate {
                        page => $page,
                        pages => $pages,
                      },
-                     $self->output . ($page ? "/index_$page.html" : "/index.html") )
+                     $self->output . "/" . $index_file )
           or die $tt->error;
         $page++;
     }
