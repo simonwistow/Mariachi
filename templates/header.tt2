@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>[% title %]</title>
+<title>[% title | html %]</title>
 <style type="text/css"><!--
   body {
     color: #444444;

@@ -1,4 +1,4 @@
-[% INCLUDE header.tt2 title = message.subject.html %]
+[% INCLUDE header.tt2 title = message.subject %]
 
 <h1>[% message.subject | html %]</h1>
 
@@ -17,13 +17,9 @@
 
 <pre>[% message.body | html %]</pre>
 
+[% INCLUDE prevnext.tt2 container = container %]
 
-<div class=threads>
-<p><a href="[% message.index %]#[% message.filename %]">
-thread index</a></p>
-
-[% PROCESS thread.tt2 %]
-</div>
+[% INCLUDE bottomthread.tt2 message = message %]
 
 </body>
 </html>

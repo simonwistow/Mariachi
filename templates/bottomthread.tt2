@@ -1,0 +1,7 @@
+<div class=threads>
+<p><a href="[% message.index %]#[% message.filename %]">
+thread index</a></p>
+
+[% PROCESS thread.tt2 %]
+</div>
+
