@@ -81,15 +81,15 @@ sub generate {
     # -- 1
     #    |-- 2
     #    |-- 3
-    #    |   |-- 4
-    #    |   5
+    #    |   \-- 4
+    #    |-- 5
     #    \-- 6
     # -- 7
     # I hate ascii art
 
-    my $page = 0;
     my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
+    my $page = 0;
     my %touched_threads;
     while (@threads) {
         # @chunk is the chunk of threads on this page
@@ -100,13 +100,17 @@ sub generate {
             my $sub;
             $sub = sub {
                 my $c = shift or return;
+
                 if (my $mail = $c->message) {
-                    $prev->next($mail) if $prev;
+                    # let the message know where it's linked from, and
+                    # what it's linked to
+
+                    $mail->index($index_file);
                     $mail->last($prev);
+                    $prev->next($mail) if $prev;
                     $prev = $mail;
 
-                    $mail->index( $index_file );
-
+                    # and mark the thread dirty, if the message is new
                     $touched_threads{ $root } = $root
                       unless -e $self->output."/".$mail->filename;
                 }
@@ -121,7 +125,7 @@ sub generate {
                        page => $page,
                        pages => $pages,
                      },
-                     $self->output . "/" . $index_file )
+                     $self->output . "/$index_file" )
           or die $tt->error;
         $page++;
     }
@@ -133,22 +137,22 @@ sub generate {
         $touched_threads{ $threads[$i+1] } = $threads[$i+1] if $i+1 < @threads;
     }
 
-    for (values %touched_threads) {
-        $_->recurse_down( sub {
-                              my $mail = $_[0]->message or return;
+    # and then render all the messages in the dirty threads
+    for my $root (values %touched_threads) {
+        my $sub = sub {
+            my $mail = $_[0]->message or return;
 
-                              $tt->process('message.tt2',
-                                           { thread    => $_,
-                                             message   => $mail,
-                                             headers   => [ 'Subject',
-                                                            'Date' ],
-                                             container => $_[0],
-                                           },
-                                           $self->output . "/" . $mail->filename)
-                                or die $tt->error;
-                          } );
+            $tt->process('message.tt2',
+                         { thread    => $root,
+                           message   => $mail,
+                           headers   => [ 'Subject', 'Date' ],
+                           container => $_[0],
+                         },
+                         $self->output . "/" . $mail->filename)
+              or die $tt->error;
+        };
+        $root->recurse_down( $sub );
     }
-
 }
 
 
