@@ -1,4 +1,4 @@
-<div class=thread>
+<li class=thread>
 [% IF thread.message %]
   [% IF thread.message == message %]<b>You are here:</b>[% END %]
   <a href="[% base %][% thread.message.filename %]" name="[% thread.message.filename %]">[% thread.message.subject | html %]</a><br />
@@ -7,9 +7,11 @@
   (message not available)
 [% END %]
 [% IF thread.child %]
+  <ul>
   [% INCLUDE thread.tt2 thread=thread.child %]
+  </ul>
 [% END %]
-</div>
+</li>
 [% IF thread.next %]
   [% INCLUDE thread.tt2 thread=thread.next %]
 [% END %]

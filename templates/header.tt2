@@ -23,9 +23,12 @@
     color: black;
     background-color: #dddddd;
     margin-top: 10px;
+    list-style-image: none;
+    list-style-type: none;
   }
   .thread {
-    padding-left: 32px;
+    list-style-image: none;
+    list-style-type: none;
   }
   
 --></style>

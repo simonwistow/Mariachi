@@ -140,7 +140,8 @@ sub generate {
         warn "Date indexes..\n";
         
         for (keys(%date_indexes)) {
-            my $depth = scalar(split(m!/!, $_));
+            my @depth = split(m!/!, $_));
+            my $depth = scalar(@depth);
             $tt->process('date.tt2',
                          { archive_date => $_,
                            mails => $date_indexes{$_},
