@@ -310,7 +310,8 @@ sub time_thread {
                 $first_parent = $first_parent->parent;
             }
 
-            unless ($first_parent && $first_parent->message) {
+            unless ($first_parent && $first_parent->message &&
+                      $first_parent->message->cell ) {
                 # just drop it randomly to one side, since it doesn't
                 # have a clearly identifiable parent
                 my $col = (max map { scalar @$_ } @cells );
