@@ -32,7 +32,7 @@
                 [% ELSE %] 
                     [% img = 'message-terminal' %]
                 [% END %]
-            	<td><a href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="[% cell.message.subject | html %]" border="0"></a></td>
+            	<td><a href="[% cell.message.filename %]"><img src="images/[% img %].png" height="24" width="24" alt="*" border="0"></a></td>
             [% ELSE %]
                 [% IF cell == '+' %][%# may really be a tee, or a corner %]
                     [% cell = ( row.$tmp == '+' || row.$tmp == '-' ) ? 'T' : 'L' %]
