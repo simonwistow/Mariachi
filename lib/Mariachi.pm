@@ -317,7 +317,10 @@ render thread tree into the directory of C<output>
 sub generate {
     my $self = shift;
 
-    my $tt = Template->new( INCLUDE_PATH => 'templates', RECURSION => 1 );
+    my $tt = Template->new(
+        INCLUDE_PATH => 'templates:/usr/local/mariachi/templates',
+        RECURSION => 1
+       );
 
     # we actually want the root set to be ordered latest first
     my @threads = sort {
