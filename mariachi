@@ -4,13 +4,63 @@ use Mariachi;
 
 my $input = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
-my $list_title = shift || "no list title" and warn "Should pass a list title\n";
-my $threads_per_page = 20;
+my $list_title = shift;
+unless ($list_title) {
+    $list_title = "no list title";
+    warn "Should pass a list title\n";
+}
 
-my $mariachi = Mariachi->new( input  => $input,
-                              output => $output,
-                              threads_per_page => $threads_per_page,
-                              list_title => $list_title,
-                            );
+Mariachi->new( input  => $input,
+               output => $output,
+               threads_per_page => 20,
+               list_title => $list_title,
+              )
+  ->perform;
 
-$mariachi->perform;
+__END__
+
+=head1 NAME
+
+mariachi
+
+=head1 SYNOPSIS
+
+ mariachi input output_dir [ "list name" ]
+
+=head1 DESCRIPTION
+
+Mariachi is a mail archive generator, much like mhonarc or pipermail.
+It differs in a few important ways:
+
+=over
+
+=item Its name is Juan
+
+=item It uses the Template Toolkit.
+
+=item This is a made up list
+
+=back
+
+=head1 AUTHORS
+
+This code was written as part of the Siesta project and includes code
+from:
+
+Richard Clamp <richardc@unixbeard.net>
+Simon Wistow <simon@thegestalt.org>
+Tom Insam <tom@jerakeen.org>
+
+More information about the Siesta project can be found online at
+http://siesta.unixbeard.net/
+
+=head1 COPYRIGHT
+
+Copyright 2003 The Siesta Project
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+Mail::Thread, Mariachi
