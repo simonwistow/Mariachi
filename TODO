@@ -1,1 +1,27 @@
-Build.PL files installer
+=head1 Build.PL files installer
+
+the one in Albazo looks like just the one I've been imagining for
+Siesta, if slightly more fully featured.  must steal
+
+=head1 Configuration
+
+commandline/inifile kinda thing.  I think this is probably what
+AppConfig is good for, and we're already using TT so it's worth a look
+
+=head1 Template plugin for body filtering
+
+hiding email addresses, turning urls into links, colorising attributed
+text, that kinda thing.
+
+=head1 Internals documentation
+
+as always.  needs to cover subclassing, since we kinda support it, but
+I'm sure that we'll assimlate ideas rather than subclass in many
+instances
+
+=head1 website/usage docs
+
+an install guide.  maybe some PRish bumf benchmarking it in comparison
+with mhonarc/pipermail.  a logo.  how to install with your existing
+mailman system.  finished templates
+
