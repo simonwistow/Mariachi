@@ -136,13 +136,12 @@ sub dedupe {
     for my $mail (@{ $self->messages }) {
         my $msgid = $mail->header('message-id');
         if ($seen{$msgid}++) {
-            print "dropping duplicate: $msgid\n";
             $dropped++;
             next;
         }
         push @new, $mail;
     }
-    print "dropped $dropped messages\n";
+    print "dropped $dropped duplicate messages\n";
     $self->messages(\@new);
 }
 
@@ -315,9 +314,8 @@ sub split_deep {
         undef $sub;
     }
 
+    print "splicing threads in ", scalar @toodeep, " places\n";
     for (@toodeep) {
-        print "stranding ", $_->messageid, "\n";
-
         # the top one needs to be empty, because we're cheating.
         # to keep references straight, we'll move its content
         my $top = $_->topmost;
@@ -430,9 +428,11 @@ sub generate {
     }
 
     # and then render all the messages in the dirty threads
+    my $count  = 0;
     for my $root (values %touched_threads) {
         my $sub = sub {
             my $mail = $_[0]->message or return;
+            print STDERR "\rmessage $count" if ++$count % 100 == 0;
 
             $tt->process('message.tt2',
                          { base      => '../../../',
@@ -446,6 +446,8 @@ sub generate {
         $root->recurse_down( $sub );
         undef $sub;
     }
+    print STDERR "\n";
+
     $self->_bench("message bodies");
 }
 
