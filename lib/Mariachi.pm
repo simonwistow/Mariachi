@@ -108,16 +108,34 @@ sub generate {
     }
 
     warn "Message pages\n";
+    my $count = 0;
+	my %threads;
     for my $mail (@{ $self->messages }) {
-        $tt->process('message.tt2',
+
+		unless (-e $self->output."/".$mail->filename or !defined $mail->root) {
+			$threads{ $mail->root } = $mail->root; 
+        	warn "$count\n" if ++$count % 20 == 0;
+		}
+	}
+
+	$self->{tt} = $tt;
+	$_->recurse_down( sub { $self->render($_[0]->message) } ) for values %threads
+
+}
+
+
+sub render {
+     my $self = shift;
+	 my $mail = shift || return;
+
+
+ 	 $self->{tt}->process('message.tt2',
                      { thread  => $mail->root,
                        message => $mail,
                        headers => [ 'Subject', 'Date' ],
                      },
-                     $self->output."/".$mail->filename) or die $tt->error;
-    }
+                     $self->output."/".$mail->filename) or die $self->{tt}->error;
 }
-
 
 sub perform {
     my $self = shift;
