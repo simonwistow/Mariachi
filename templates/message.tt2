@@ -1,4 +1,4 @@
-[% INCLUDE header.tt2 title = message.subject %]
+[% INCLUDE header.tt2 title = message.subject base = "../../.." %]
 
 <h1>[% message.subject | html %]</h1>
 
@@ -16,7 +16,7 @@
 
 <pre>[% message.body | html %]</pre>
 
-[% INCLUDE prevnext.tt2 container = container %]
+[% INCLUDE prevnext.tt2 %]
 
 [% PROCESS bottomthread.tt2 %]
 

@@ -27,6 +27,7 @@
   }
   
 --></style>
+[% IF base %]<base href="../../..">[% END %]
 </head>
 <body>
 
