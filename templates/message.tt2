@@ -3,8 +3,8 @@
 <h1>[% message.subject | html %]</h1>
 
 <p>
-[<a href="[% message.last %]">last</a>]
-[<a href="[% message.next %]">next</a>]
+[<a href="[% message.last.filename %]">last</a>]
+[<a href="[% message.next.filename %]">next</a>]
 </p>
 
 <div class=headers>

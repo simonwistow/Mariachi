@@ -79,42 +79,30 @@ sub generate {
     my @threads = $self->threader->rootset;
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my %touched_threads;
-
-    my $last_message_in_thread;
-    
     while (@threads) {
-        warn "Index page " . ($page + 1) . "\n";
         # @chunk is the chunk of threads on this page
         my @chunk = splice(@threads, 0, $self->threads_per_page);
         my $index_file = $page ? "index_$page.html" : "index.html";
-        $_->recurse_down(sub {
-                             my $mail = $_[0]->message or return;
+        for (@chunk) {
+            $_->recurse_down(sub {
+                                 my $mail = $_[0]->message or return;
 
-                             $mail->index( $index_file );
-                             $mail->root( $_ );
+                                 $mail->index( $index_file );
+                                 $mail->root( $_ );
 
-                             my $next = $_[0]->child || $_[0]->next;
-                             my $parent = $_[0];
-                             while ($parent and !$next) {
-                                 $parent = $parent->parent;
-                                 $next = $parent->next if $parent;
-                             }
-                             $mail->next($next->message->filename) if $next;
-                             $next->message->last($mail->filename) if $next;
-                             
-                             if ($last_message_in_thread) {
-                                 $last_message_in_thread->next($mail->filename);
-                                 $mail->last($last_message_in_thread->filename);
-                                 undef $last_message_in_thread;
-                             }
-                             $last_message_in_thread = $mail unless $next;
+                                 my $next = $_[0]->child || $_[0]->next;
+                                 my $parent = $_[0];
+                                 while ($parent and !$next) {
+                                     $parent = $parent->parent;
+                                     $next = $parent->next if $parent;
+                                 }
+                                 $mail->next($next->message) if $next;
+                                 $next->message->last($mail) if $next;
 
-                             $touched_threads{ $_ } = $_
-                               if ((!-e $self->output."/".$mail->filename)
-                               or ($mail->next and !-e $self->output."/".$mail->next)
-                               or ($mail->last and !-e $self->output."/".$mail->last));
-                         })
-          for @chunk;
+                                 $touched_threads{ $_ } = $_
+                                   unless -e $self->output."/".$mail->filename;
+                             });
+        }
 
         $tt->process('index.tt2',
                      { threads => \@chunk,
@@ -126,22 +114,33 @@ sub generate {
         $page++;
     }
 
-    warn "Message pages\n";
-    my $count = 0;
-    $_->recurse_down( sub {
-                          my $mail = $_[0]->message or return;
-                          warn "$count\n" if ++$count % 50 == 0;
+    # figure out adjacent dirty threads
+    @threads = $self->threader->rootset;
+    for (my $i = 0; $i < @threads; $i++) {
+        if ($touched_threads{ $threads[$i] }) {
+            $touched_threads{ $threads[$i-1] } = $threads[$i-1]
+              if $i > 0;
+            $touched_threads{ $threads[$i+1] } = $threads[$i+1]
+              if $i+1 < @threads;
+        }
+    }
 
-                          $tt->process('message.tt2',
-                                       { thread    => $mail->root,
-                                         message   => $mail,
-                                         headers   => [ 'Subject', 'Date' ],
-                                         container => $_[0],
-                                       },
-                                       $self->output."/".$mail->filename)
-                            or die $tt->error;
-                      } )
-      for values %touched_threads;
+    for (values %touched_threads) {
+        $_->recurse_down( sub {
+                              my $mail = $_[0]->message or return;
+
+                              $tt->process('message.tt2',
+                                           { thread    => $mail->root,
+                                             message   => $mail,
+                                             headers   => [ 'Subject',
+                                                            'Date' ],
+                                             container => $_[0],
+                                           },
+                                           $self->output . "/" . $mail->filename)
+                                or die $tt->error;
+                          } );
+    }
+
 }
 
 
