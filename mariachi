@@ -4,6 +4,9 @@ use Mail::Thread;
 use File::Find::Rule;
 use Date::Parse qw(str2time);
 use Template;
+use Time::HiRes qw( gettimeofday tv_interval );
+
+my $start = [gettimeofday];
 
 my $maildir = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
@@ -22,10 +25,15 @@ map {
 } find( file => in => $maildir );
 
 
-print scalar @mails, " mails\n";
+print scalar @mails, " messages loaded in ", tv_interval( $start )," seconds\n";
+$start = [gettimeofday];
 
 my $threader = Mail::Thread->new( @mails );
 $threader->thread;
+
+print "and threaded in ", tv_interval( $start ), " seconds\n";
+
+$start = [gettimeofday];
 
 my $tt = Template->new;
 
@@ -40,6 +48,8 @@ for my $mail (@mails) {
                  },
                  "$output/".$mail->filename) or die $tt->error;
 }
+
+print "output generation took ", tv_interval( $start ), " seconds\n";
 
 exit 0;
 
