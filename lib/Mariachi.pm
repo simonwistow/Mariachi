@@ -284,6 +284,20 @@ sub _cell {
     return;
 }
 
+sub _draw_cells {
+    my $cells = shift;
+    # and again in their new state
+    for my $row (@$cells) {
+        my $this;
+        for (@$row) {
+            $this = $_ if ref $_;
+            print ref $_ ? '*' : $_ ? $_ : ' ';
+        }
+        print "\t", $this->messageid, "\n";
+    }
+    print "\n";
+}
+
 sub time_thread {
     my $self = shift;
 
@@ -363,10 +377,8 @@ sub time_thread {
 
                 # okay, figure out what the max col is
                 my $max_col = (max map { scalar @$_ } @cells );
+                # would drawing the simple horizontal line cross the streams?
                 if (grep { $cells[$parent_row][$_] } $parent_col+1..$max_col) {
-                    # okay.  doing the simplest thing would have
-                    # crossed the streams, do more work.
-
                     # we want to end up in $parent_col + 1 and
                     # everything in that column needs to get shuffled
                     # over one
@@ -388,6 +400,26 @@ sub time_thread {
                 }
                 $cells[$parent_row][$col] = '+';
             }
+            # would drawing the vertical line cross the streams?
+            if (grep { $cells[$_][$col] } $parent_row+1..$row) {
+                print "Crossing the streams!\n";
+                # a +
+                #   b
+                # c +
+                #   d
+
+                # C<e> comes as a late response to C<e>.  after
+                # stretching it looks like this:
+
+                # a + +
+                #     b
+                # c - +
+                #     d
+                #   e
+                # to draw the vertical would cross the c -> d path
+
+            }
+
             # place the message
             $cells[$row][$col] = $c;
             # link with vertical dashes
@@ -403,18 +435,7 @@ sub time_thread {
         }
 
         push @results, \@cells;
-        if (0) {
-            # and again in their new state
-            for my $row (@cells) {
-                my $this;
-                for (@$row) {
-                    $this = $_ if ref $_;
-                    print ref $_ ? '*' : $_ ? $_ : ' ';
-                }
-                print "\t", $this->messageid, "\n";
-            }
-            print "\n";
-        }
+        _draw_cells(\@cells) if 1;
     }
     return @results;
 }
