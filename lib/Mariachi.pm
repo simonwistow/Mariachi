@@ -330,7 +330,28 @@ sub time_thread {
             }
             else {
                 # otherwise, we have to shuffle accross into the first
-                # free column
+                # free column, but we have to not cross the streams.
+                # if given this tree:
+                # a + +
+                # b | |
+                #   c |
+                #     d
+                #
+                # e arrives, and is a reply to b, we can't just go:
+                # a + +
+                # b - - +
+                #   c | |
+                #     d |
+                #       e
+                #
+                # it's messy and confusing.  instead we have to do
+                # extra work so we end up at
+                # a - + +
+                # b + | |
+                #   | c |
+                #   |   d
+                #   e
+
                 $col = (max map { scalar @$_ } @cells );
                 $cells[$row][$col] = $c;
                 $c->message->cell([$row,$col]);
