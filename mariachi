@@ -125,7 +125,7 @@ sub find_message_id {
     my $self = shift;
     my $id = shift;
 
-    return $self if $self->id eq $id;
+    return $self if $self->messageid eq $id;
     for ( qw( child next ) ) {
         my $next = $self->$_();
         next unless $next;
