@@ -166,6 +166,21 @@ sub _significant_signal {
                         |good (?:morning|afternoon|day|evening))
                  (?:\W.{0,14})?\s*$/ixs;
 
+	# snips
+        next if m~\s*                          # whitespace
+                  [<.=-_*+({\[]*?              # opening bracket
+                  (?:snip|cut|delete|deleted)  # snip?
+                  [^>}\]]*?                    # some words?
+                  [>.=-_*+)}\]]*?              # closing bracket
+                 \s*$                          # end of the line
+                 ~xi;
+
+        # [.. foo ..] or ...foo.. or so on
+        next if m~\s*\[?\.\..*?\.\.]?\s*$~;
+
+        # ... or [...]
+        next if m~\s*\[?\.\.\.]?\s*$~;
+
 	# if we got this far then we've probably got past the
 	# attibutation lines
         unshift @lines, $_;  # undo the shift
@@ -242,6 +257,7 @@ sub from {
     $from =~ s/<.*>//;
     $from =~ s/\@\S+//;
     $from =~ s/\s+\z//;
+    $from =~ s/"(.*?)"/$1/;
     return $from;
 }
 memoize('from');

@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 13;
 use_ok('Mariachi::Message');
 
 my $m = Mariachi::Message->new(<<'MAIL');
@@ -38,3 +38,13 @@ MAIL
 
 is( $m2->header('message-id' ), '1d6e9e79@made_up', "faked a messageid" );
 is( $m2->sig,             "But we do have a sig\n" );
+
+# test for name extraction working properly, even with quotes in it
+
+my $m3 = Mariachi::Message->new(<<'MAIL');
+From: "Mark Fowler" <someonestupid@twoshortplanks.com>
+Subject: Thingys not working
+
+The things with the quote marks and the biting of teeth
+MAIL
+is( $m3->from, 'Mark Fowler', "double quote removal");
