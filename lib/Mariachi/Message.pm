@@ -7,7 +7,7 @@ use Date::Parse qw(str2time);
 
 use base qw(Email::Simple Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw( filename from index next last epoch_date
-                              year_index month_index day_index ymd));
+                              year month day ymd));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
@@ -24,9 +24,9 @@ sub _filename {
     my @date = localtime $self->epoch_date;
     my @ymd = ($date[5]+1900, $date[4]+1, $date[3]);
     my $path = sprintf("%04d/%02d/%02d/", @ymd);
-    $self->year_index(sprintf("%04d/index.html", @ymd));
-    $self->month_index(sprintf("%04d/%02d/index.html", @ymd));
-    $self->day_index(sprintf("%04d/%02d/%02d/index.html", @ymd));
+    my $year  = $self->year(           sprintf  "%04d", $ymd[0] );
+    my $month = $self->month( $year  . sprintf "/%02d", $ymd[1] );
+    my $day   = $self->day(   $month . sprintf "/%02d", $ymd[2] );
     $self->ymd(\@ymd);
     return $path.$filename;
 }

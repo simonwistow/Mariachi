@@ -117,15 +117,15 @@ sub generate {
                     unless (-e $self->output."/".$mail->filename) {
                         $touched_threads{ $root } = $root;
                         # And also dirty the date threads
-                        $touched_date_threads{ $mail->year_index } = 1;
-                        $touched_date_threads{ $mail->month_index } = 1;
-                        $touched_date_threads{ $mail->day_index } = 1;
+                        $touched_date_threads{ $mail->year } = 1;
+                        $touched_date_threads{ $mail->month } = 1;
+                        $touched_date_threads{ $mail->day } = 1;
                     }
 
                     # And mark date indexes for building
-                    push @{ $date_indexes{ $mail->year_index } }, $mail;
-                    push @{ $date_indexes{ $mail->month_index } }, $mail;
-                    push @{ $date_indexes{ $mail->day_index } }, $mail;
+                    push @{ $date_indexes{ $mail->year } }, $mail;
+                    push @{ $date_indexes{ $mail->month } }, $mail;
+                    push @{ $date_indexes{ $mail->day } }, $mail;
                 }
                 $sub->($c->child);
                 $sub->($c->next);
@@ -144,20 +144,18 @@ sub generate {
         $page++;
     }
 
-    for my $index ( keys %touched_date_threads ) {
-        my $date = $index;
-        $date =~ s/\/index\.html$//;
+    for ( keys %touched_date_threads ) {
         my @mails = sort {
             $a->epoch_date <=> $b->epoch_date
-        } @{ $date_indexes{$index} };
+        } @{ $date_indexes{$_} };
 
-        my @depth = split m!/!, $date;
+        my @depth = split m!/!;
         $tt->process('date.tt2',
-                     { archive_date => $date,
-                       mails => \@mails,
-                       base => "../" x @depth,
+                     { archive_date => $_,
+                       mails        => \@mails,
+                       base         => "../" x @depth,
                      },
-                     $self->output . "/$index" )
+                     $self->output . "/$_/index.html" )
           or die $tt->error;
     }
 
