@@ -6,7 +6,7 @@ use Digest::MD5 qw(md5_base64);
 use Date::Parse qw(str2time);
 
 use base qw(Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from index next last epoch_date
+__PACKAGE__->mk_accessors(qw( filename from index next prev epoch_date
                               year month day ymd _header body ));
 
 sub subject { $_[0]->header('subject') }

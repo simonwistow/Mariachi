@@ -107,8 +107,8 @@ sub generate {
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
-    my %touched_date_threads;
-    my %date_indexes;
+    my %touched_dates;
+    my %dates;
     my $prev;
     while (@threads) {
         # @chunk is the chunk of threads on this page
@@ -123,7 +123,7 @@ sub generate {
                     # let the message know where it's linked from, and
                     # what it's linked to
                     $mail->index($index_file);
-                    $mail->last($prev);
+                    $mail->prev($prev);
                     $prev->next($mail) if $prev;
                     $prev = $mail;
 
@@ -131,15 +131,15 @@ sub generate {
                     unless (-e $self->output."/".$mail->filename) {
                         $touched_threads{ $root } = $root;
                         # dirty up the date indexes
-                        $touched_date_threads{ $mail->year } = 1;
-                        $touched_date_threads{ $mail->month } = 1;
-                        $touched_date_threads{ $mail->day } = 1;
+                        $touched_dates{ $mail->year } = 1;
+                        $touched_dates{ $mail->month } = 1;
+                        $touched_dates{ $mail->day } = 1;
                     }
 
                     # add things to the date indexes
-                    push @{ $date_indexes{ $mail->year } }, $mail;
-                    push @{ $date_indexes{ $mail->month } }, $mail;
-                    push @{ $date_indexes{ $mail->day } }, $mail;
+                    push @{ $dates{ $mail->year } }, $mail;
+                    push @{ $dates{ $mail->month } }, $mail;
+                    push @{ $dates{ $mail->day } }, $mail;
                 }
                 $sub->($c->child) if $c->child;
                 $sub->($c->next)  if $c->next;
@@ -158,11 +158,12 @@ sub generate {
         $page++;
     }
 
-    for ( keys %touched_date_threads ) {
+    for ( keys %touched_dates ) {
         my @mails = sort {
             $a->epoch_date <=> $b->epoch_date
-        } @{ $date_indexes{$_} };
+        } @{ $dates{$_} };
 
+        # TODO paginate these too
         my @depth = split m!/!;
         $tt->process('date.tt2',
                      { archive_date => $_,
