@@ -108,27 +108,24 @@ sub generate {
                 if (my $mail = $c->message) {
                     # let the message know where it's linked from, and
                     # what it's linked to
-
                     $mail->index($index_file);
                     $mail->last($prev);
                     $prev->next($mail) if $prev;
                     $prev = $mail;
 
-                    my @date = localtime $mail->epoch_date;
-
                     # and mark the thread dirty, if the message is new
                     unless (-e $self->output."/".$mail->filename) {
                         $touched_threads{ $root } = $root;
                         # And also dirty the date threads
-                        $touched_date_threads{sprintf("%04d/%02d/%02d", $date[5]+1900, $date[4]+1, $date[3])}=1;
-                        $touched_date_threads{sprintf("%04d/%02d", $date[5]+1900, $date[4]+1)}=1;
-                        $touched_date_threads{sprintf("%04d", $date[5]+1900)}=1;
+                        $touched_date_threads{ $mail->year_index } = 1;
+                        $touched_date_threads{ $mail->month_index } = 1;
+                        $touched_date_threads{ $mail->day_index } = 1;
                     }
 
                     # And mark date indexes for building
-                    push @{$date_indexes{sprintf("%04d", $date[5]+1900)}}, $mail;
-                    push @{$date_indexes{sprintf("%04d/%02d", $date[5]+1900, $date[4]+1)}}, $mail;
-                    push @{$date_indexes{sprintf("%04d/%02d/%02d", $date[5]+1900, $date[4]+1, $date[3])}}, $mail;
+                    push @{ $date_indexes{ $mail->year_index } }, $mail;
+                    push @{ $date_indexes{ $mail->month_index } }, $mail;
+                    push @{ $date_indexes{ $mail->day_index } }, $mail;
                 }
                 $sub->($c->child);
                 $sub->($c->next);
@@ -147,21 +144,22 @@ sub generate {
         $page++;
     }
 
+    for my $index ( keys %touched_date_threads ) {
+        my $date = $index;
+        $date =~ s/\.html$//;
+        my @mails = sort {
+            $a->epoch_date <=> $b->epoch_date
+        } @{ $date_indexes{$index} };
 
-    for (keys(%date_indexes)) {
-        next unless $touched_date_threads{$_};
-        my @mails = sort { $a->epoch_date <=> $b->epoch_date} @{$date_indexes{$_}};
-        my @depth = split(m!/!, $_);
-        my $depth = scalar(@depth);
+        my @depth = split m!/!, $date;
         $tt->process('date.tt2',
-                     { archive_date => $_,
+                     { archive_date => $date,
                        mails => \@mails,
-                       base => "../" x $depth,
+                       base => "../" x @depth,
                      },
-                     $self->output . "/$_/index.html" )
+                     $self->output . "/$index" )
           or die $tt->error;
     }
-
 
     # figure out adjacent dirty threads
     @threads = $self->threader->rootset;

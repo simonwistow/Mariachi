@@ -6,7 +6,8 @@ use Digest::MD5 qw(md5_base64);
 use Date::Parse qw(str2time);
 
 use base qw(Email::Simple Class::Accessor::Fast);
-__PACKAGE__->mk_accessors(qw( filename from index next last epoch_date year_index month_index day_index ymd));
+__PACKAGE__->mk_accessors(qw( filename from index next last epoch_date
+                              year_index month_index day_index ymd));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
