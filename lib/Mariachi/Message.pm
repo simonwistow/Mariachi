@@ -7,22 +7,15 @@ use Date::Parse qw(str2time);
 use Text::Original ();
 use Memoize;
 
-use base 'Mariachi::DBI';
-__PACKAGE__->set_up_later(
-    map { $_ => '' } qw(
-        hdr_message_id hdr_from hdr_subject hdr_date
-        hdr_references hdr_in_reply_to
-        body epoch_date day month year ),
-   );
-
-#these are just sops
+use base 'Mariachi::DBI::Delay';
+__PACKAGE__->slacker_table( qw(
+    hdr_message_id hdr_from hdr_subject hdr_date
+    hdr_references hdr_in_reply_to
+    body epoch_date day month year
+  ));
+__PACKAGE__->set_up_table( __PACKAGE__->moniker );
 __PACKAGE__->columns( TEMP => qw( prev next root ) );
 
-sub _header_column {
-    my $thing = shift;
-    $thing =~ tr/-/_/;
-    return "hdr_" . lc $thing;
-}
 
 =head1 NAME
 
@@ -37,6 +30,14 @@ C<$message> is a rfc2822 compliant message body
 your standard constructor
 
 =cut
+
+
+sub _header_column {
+    my $thing = shift;
+    $thing =~ tr/-/_/;
+    return "hdr_" . lc $thing;
+}
+
 
 sub new {
     my $class = shift;

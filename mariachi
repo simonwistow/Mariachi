@@ -200,7 +200,9 @@ unless (defined $config->name) {
     $config->name("no list name");
 }
 
-Mariachi::DBI->set_db( 'Main', 'dbi:SQLite:'.$config->output.'/mariachi.db', '', '' );
+Mariachi::DBI::Delay->set_db(
+    Main => 'dbi:SQLite:'.$config->output.'/mariachi.db'
+   );
 $config->class->new( config  => $config,
                      threads_per_page => 20,
                     )
