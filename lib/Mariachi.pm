@@ -116,13 +116,9 @@ sub generate {
 
     # figure out adjacent dirty threads
     @threads = $self->threader->rootset;
-    for (my $i = 0; $i < @threads; $i++) {
-        if ($touched_threads{ $threads[$i] }) {
-            $touched_threads{ $threads[$i-1] } = $threads[$i-1]
-              if $i > 0;
-            $touched_threads{ $threads[$i+1] } = $threads[$i+1]
-              if $i+1 < @threads;
-        }
+    for my $i (grep { $touched_threads{ $threads[$_] } } 0..$#threads) {
+        $touched_threads{ $threads[$i-1] } = $threads[$i-1] if $i > 0;
+        $touched_threads{ $threads[$i+1] } = $threads[$i+1] if $i+1 < @threads;
     }
 
     for (values %touched_threads) {
