@@ -18,7 +18,7 @@ sort {
 map {
     open my $fh, "<$_" or die "open: '$_' $!";
     my $message = Message->new($fh);
-    [ $message => str2time( $message->head->get('date') ) ];
+    [ $message => str2time( $message->date ) ];
 } find( file => in => $maildir );
 
 
@@ -51,6 +51,24 @@ use base qw(Mail::Internet);
 
 sub filename {
     my $self = shift;
+    md5_base64( $self->as_string ).".html"
+}
 
-    md5_base64( $self->as_string ).".html";
+sub subject {
+    my $self = shift;
+    $self->head->get('subject');
+}
+
+
+sub date {
+    my $self = shift;
+    $self->head->get('date');
+}
+
+sub from {
+    my $self = shift;
+    my $from = $self->head->get('from');
+    $from =~ s/<.*>//;
+    $from =~ s/\@\S+//;
+    $from;
 }

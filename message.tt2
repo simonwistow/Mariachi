@@ -1,3 +1,10 @@
-[% message.head.get('subject') | html %]
+<html>
+<head><title>[% message.subject | html %]</title></head>
+<body>
+From: [% message.from | html %]<br>
+Date: [% message.date | html %]<br>
+Subject: [% message.subject | html %]<br>
 <hr>
 <pre>[% message.body.join("") | html %]</pre>
+</body>
+</html>
