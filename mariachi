@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl -w
 use strict;
 use AppConfig qw(:argcount);
+use Mariachi;
 
 =head1 NAME
 
@@ -148,13 +149,11 @@ my %context_styles = map {
 
 $config->define("thread-context", {
     DEFAULT => '',
-    ARGCOUNT => ARGCOUNT_ONE,
     VALIDATE => sub { $context_styles{ $_[1] } }
    });
 
 $config->define("lurker-context", {
     DEFAULT => '',
-    ARGCOUNT => ARGCOUNT_ONE,
     VALIDATE => sub { $context_styles{ $_[1] } }
    });
 
@@ -166,8 +165,7 @@ Specifies using a class other than C<Mariachi> to do the rendering.
 
 $config->define("class", {
     DEFAULT => 'Mariachi',
-    ARGCOUNT => ARGCOUNT_ONE,
-    VALIDATE => sub { eval "require $_[1]; 1" }
+    VALIDATE => sub { eval "require $_[1]; 1" or die "$@" }
    });
 
 
