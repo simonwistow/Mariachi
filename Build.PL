@@ -29,6 +29,7 @@ my $build = Siesta::Build->new(
         'Time::HiRes'     => 0,
         'Template'        => 0,
         'Template::Plugin::Page' => 0,
+        'Text::Original'  => 0,
         'URI::Find::Schemeless::Stricter' => 0,
     },
     create_makefile_pl => 'passthrough',
