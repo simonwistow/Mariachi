@@ -179,7 +179,6 @@ C<messages>
 sub thread {
     my $self = shift;
 
-    $Mail::Thread::nosubject = 1;
     my $threader = Email::Thread->new( @{ $self->messages } );
     $threader->thread;
     $self->rootset( [ $threader->rootset ] );
@@ -233,8 +232,24 @@ sub sanity {
     #print STDERR "\n";
 
     return unless %mails;
-    print join "\n", map { $_->header("message-id") } values %mails;
     die "\nDidn't see ".(scalar keys %mails)." messages";
+
+    print join "\n", map {
+        my @ancestors;
+        my $x = $_->container;
+        my %seen;
+        my $last;
+        while ($x) {
+            if ($seen{$x}++) { push @ancestors, "$x ancestor loop!\n"; last }
+            my $extra = '';
+            $extra .= " one-way"
+              if $last && !grep { $last == $_ } $x->children;
+            push @ancestors, $x."$extra";
+            $last = $x;
+            $x = $x->parent;
+        }
+        $_->header("message-id"), @ancestors
+    } values %mails;
 }
 
 =head2 ->strand
@@ -314,6 +329,7 @@ render thread tree into the directory of C<output>
 
 =cut
 
+# XXX this seems to have just passed the stage of being too big
 sub generate {
     my $self = shift;
 
