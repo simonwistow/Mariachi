@@ -20,7 +20,8 @@
 </div>
 
 <pre>[% message.body_sigless | html | mariachi  %][% IF message.sig -%]
--- <i>[% message.sig | html | mariachi %][% END %]</i></pre>
+-- <i>
+[% message.sig | html | mariachi %][% END %]</i></pre>
 
 [%# INCLUDE prevnext.tt2 %]
 [%
