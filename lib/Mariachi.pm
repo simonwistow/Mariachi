@@ -336,7 +336,6 @@ sub time_thread {
                 # if we're the first child, then we directly beneath
                 # them
                 $col = $parent_col;
-                $cells[$row][$col] = $c;
             }
             else {
                 # otherwise, we have to shuffle accross into the first
@@ -372,24 +371,25 @@ sub time_thread {
                     # everything in that column needs to get shuffled
                     # over one
                     $col = $parent_col + 1;
-                    for my $r (@cells[0..$row -1]) {
+                    for my $r (@cells[0 .. $row - 1]) {
                         next if @$r < $col;
-                        my $here = $r->[$col] || ' ';
-                        splice(@$r, $col, 0, $here eq '+' ? '-' : ' ');
+                        my $here = $r->[$col] || '';
+                        splice(@$r, $col, 0, $here eq '+' ? '-' : undef);
                     }
+                    $col = $parent_col + 1;
                 }
                 else {
                     $col = $max_col;
                 }
 
                 # the path is now clear, add the line in
-                $cells[$row][$col] = $c;
                 for ($parent_col..$col) {
                     $cells[$parent_row][$_] ||= '-';
                 }
-
                 $cells[$parent_row][$col] = '+';
             }
+            # place the message
+            $cells[$row][$col] = $c;
             # link with vertical dashes
             for ($parent_row..$row) {
                 $cells[$_][$col] ||= '|';
@@ -408,7 +408,7 @@ sub time_thread {
             for my $row (@cells) {
                 my $this;
                 for (@$row) {
-                    $this ||= $_;
+                    $this = $_ if ref $_;
                     print ref $_ ? '*' : $_ ? $_ : ' ';
                 }
                 print "\t", $this->messageid, "\n";
