@@ -269,6 +269,10 @@ sub sanity {
 
 return a new structure, like the time-based threading of Lurker
 
+It's pretty faithful, apart from we mindfully cross streams
+vertically, this way we don't use all the horizontal space in the
+world dealing with it.
+
 =cut
 
 # identify the co-ordinates of something
@@ -300,7 +304,7 @@ sub _draw_cells {
     print "\n";
 }
 
-use constant debug => 1;
+use constant debug => 0;
 
 sub time_thread {
     my $self = shift;
@@ -407,47 +411,12 @@ sub time_thread {
                 }
                 $cells[$parent_row][$col] = '+';
             }
-            # would drawing the vertical line cross the streams?
-            if (my @intersects = grep { $cells[$_][$col] } $parent_row+1..$row) {
-                print "Crossing the streams, vertically\n" if debug;
-                # a +
-                #   b
-                # c +
-                #   d
-
-                # C<e> comes as a late response to C<e>.  after
-                # stretching it looks like this:
-
-                # a + +
-                #     b
-                # c - +
-                #     d
-                #   e
-                # to draw the vertical would cross the c -> d path
-
-                if (0) {
-                    # figure out what the longest thing we intersect is
-                    for my $r (map { $cells[$_] } @intersects) {
-                        for (0..@$r) {
-                            $col = $_ if ($r->[$_] || '') ne ' ' && $_ > $col;
-                        }
-                    }
-                    # stretch the parent, and its ancestors over that
-                    my $distance = $col - $parent_col;
-                    print "target column is $col, moving column $parent_col, $distance columns over\n" if debug;
-                    for my $r (@cells) {
-                        my @insert = (($r->[$parent_col-1] || '') =~ /[+-]/ ? '-' : ' ')
-                          x $distance;
-                        splice(@$r, $parent_col + 1, 0, @insert);
-                    }
-                }
-            }
 
             # place the message
             $cells[$row][$col] = $c;
             # link with vertical dashes
-            for ($parent_row..$row) {
-                $cells[$_][$col] ||= '|';
+            for ($parent_row+1..$row-1) {
+                $cells[$_][$col] = ($cells[$_][$col] || '') eq '-' ? '{' : '|';
             }
             _draw_cells(\@cells) if debug;
         }
