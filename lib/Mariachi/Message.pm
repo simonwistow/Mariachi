@@ -16,7 +16,7 @@ __PACKAGE__->set_up_later(
    );
 
 #these are just sops
-__PACKAGE__->columns( TEMP => qw( rawmail prev next root ) );
+__PACKAGE__->columns( TEMP => qw( prev next root ) );
 
 # copy things out of the email::simple message and into the columns
 sub _blat {
