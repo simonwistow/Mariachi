@@ -4,7 +4,7 @@
 <h1>[% list_title %]</h1>
 
 [% FOREACH root = threads %]
-<h2>[% root.0.0.topmost.message.subject %]</h2>
+<h2>[% root.0.0.topmost.message.subject | html%]</h2>
 <table border = "1">
 	<tr>
 	</tr>
