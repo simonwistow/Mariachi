@@ -61,7 +61,7 @@ my $config = AppConfig->new({ PEDANTIC => 1,
                               }
                              });
 
-$config->define("input");
+$config->define("input", { ALIAS => 'i' });
 
 =head2 -o, --output I<directory>
 
@@ -69,7 +69,7 @@ Name of the directory to write output to
 
 =cut
 
-$config->define("output");
+$config->define("output", { ALIAS => 'o' });
 
 
 =head2 -n, --name I<title>
@@ -78,7 +78,7 @@ What to use in the title of the mailing lists
 
 =cut
 
-$config->define("name");
+$config->define("name", { ALIAS => 'n' });
 
 
 =head2 -t, --templates I<directory>
@@ -92,9 +92,10 @@ Any values will be added to the head of that list.
 =cut
 
 $config->define("templates", {
+    ALIAS    => 't',
     DEFAULT  => [ '/usr/local/mariachi/templates', 'templates' ],
-    ARGCOUNT => ARGCOUNT_LIST,
-});
+    ARGCOUNT => ARGCOUNT_LIST
+   });
 
 =head2 -f --force
 
@@ -102,7 +103,11 @@ Force is probably not a good name
 
 =cut
 
-$config->define("force", { DEFAULT  => 0, ARGCOUNT => ARGCOUNT_NONE });
+$config->define("force", {
+    ALIAS    => 'f',
+    DEFAULT  => 0,
+    ARGCOUNT => ARGCOUNT_NONE
+   });
 
 
 # define the system and the user config files
