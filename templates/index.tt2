@@ -1,4 +1,4 @@
-[% INCLUDE header.tt2 title="Messages" %]
+[% PROCESS header.tt2 title="Messages" %]
 
 [% IF threads.0.message.header("List-Id") %]
 <div class="title">[% threads.0.message.header("List-Id") | html %]</div>
