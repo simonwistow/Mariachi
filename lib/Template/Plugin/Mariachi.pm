@@ -90,6 +90,10 @@ sub filter {
         URI::Find::Schemeless::Stricter->new(\&munge_uri)->find(\$text);
     }
 
+	if ($self->_should_do('quoting', $config)) {
+		munge_quoting(\$text);
+	}
+
     return $text;
 
 }
@@ -113,6 +117,22 @@ sub _should_do {
 
 }
 
+
+=head2 munge_quoting <text_ref>
+
+Takes a reference to some text and returns it munged for quoting
+
+=cut
+
+
+sub munge_quoting {
+	my $textref = shift;
+
+    $$textref =~ s!^(\s*&gt;.+)$!<i>$1</i>!gm;
+
+
+
+}
 
 =head2 munge_email <email> <orig_email>
 
