@@ -14,7 +14,7 @@ use File::Basename;
 use base 'Class::Accessor::Fast';
 
 use vars '$VERSION';
-$VERSION = 0.31;
+$VERSION = 0.4;
 
 __PACKAGE__->mk_accessors( qw( config messages rootset
                                start_time last_time tt ) );
@@ -403,12 +403,10 @@ sub generate_pages {
             $self->config->output . "/$$.tmp" )
           or die $self->tt->error;
 
-        print STDERR "\r$$.tmp -> $file";
         mkpath dirname $self->config->output . "/$file";
         move $self->config->output . "/$$.tmp", $self->config->output . "/$file"
           or die "$!";
     } while $again;
-    print STDERR "\n";
 }
 
 
@@ -604,8 +602,12 @@ This code was written as part of the Siesta project and includes code
 from:
 
 Richard Clamp <richardc@unixbeard.net>
+
 Simon Wistow <simon@thegestalt.org>
+
 Tom Insam <tom@jerakeen.org>
+
+Mark Fowler <mark@twoshortplanks.com>
 
 More information about the Siesta project can be found online at
 http://siesta.unixbeard.net/

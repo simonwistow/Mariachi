@@ -29,7 +29,6 @@ my $build = Siesta::Build->new(
         'File::Copy'      => 0,
         'File::Basename'  => 0,
     },
-    sign => 1,
     create_makefile_pl => 'passthrough',
    );
 

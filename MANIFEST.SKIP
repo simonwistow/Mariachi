@@ -1,7 +1,9 @@
 ~$
-Build
-_build
-blib
+^Build$
+^_build/
+^blib/
 \.svn
-MANIFEST.SKIP
+^MANIFEST.SKIP$
 out
+^cover_db/
+

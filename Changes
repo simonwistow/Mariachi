@@ -1,4 +1,4 @@
-HEAD	Unreleased
+0.4	Thursday 26th June, 2003
 	Now we ship with a lurker-style output.
 
 	template paths are specifyable
