@@ -71,7 +71,6 @@ sub sanitise_messages {
 sub thread {
     my $self = shift;
 
-    $Mail::Thread::nosubject = 1;
     my $threader = Email::Thread->new( @{ $self->messages } );
     $self->threader($threader);
     $threader->thread;
