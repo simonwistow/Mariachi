@@ -54,7 +54,7 @@
         <tr class="[% loop.count % 2 == 0 ? "row1" : "row2" %]">
         [% FOREACH cell = row %]
 	    [% x = loop.count - 1 %]
-	    [% IF cell != ' ' && root.$y && root.$y.$x && root.$y.$x != ' ' && root.$y.$x != '-' %][%# something beneath %]
+	    [% IF cell != ' ' && root.$y && root.$y.$x && !root.$y.$x.match('[ +-]') %][%# something beneath %]
                <td width="24" background="images/vertical.png">&nbsp;</td>
 	    [% ELSE %]
 	       <td width="24"></td>
