@@ -29,11 +29,7 @@ sub load_messages {
     while (my $msg = $folder->next_message) {
         push @msgs, $msg;
 
-        if (1) {
-            # XXX experimental - zero the bodies. see if we get any speed back
-            $msg->body_set('');
-            print "\r$count messages" if ++$count % 100 == 0;
-        }
+        print "\r$count messages" if ++$count % 100 == 0;
     }
     print "\n";
     $self->messages( \@msgs );

@@ -5,9 +5,9 @@ use Class::Accessor::Fast;
 use Digest::MD5 qw(md5_base64);
 use Date::Parse qw(str2time);
 
-use base qw(Email::Simple Class::Accessor::Fast);
+use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw( filename from index next last epoch_date
-                              year month day ymd ));
+                              year month day ymd _header body ));
 
 sub subject { $_[0]->header('subject') }
 sub date    { $_[0]->header('date') }
@@ -45,25 +45,34 @@ sub _from {
     return $from;
 }
 
+sub header {
+    my $self = shift;
+    $self->_header->{ lc shift() };
+}
+
+sub header_set {
+    my $self = shift;
+    my $hdr = shift;
+    $self->_header->{ lc $hdr} = shift;
+}
+
 sub new {
     my $class = shift;
     my $source = shift;
-    my $self = $class->SUPER::new($source) or return;
+
+    my $self = $class->SUPER::new;
+    my $mail = Email::Simple->new($source) or return;
+
+    $self->_header({});
+    $self->header_set( $_, $mail->header($_) ) for
+      qw( message-id from subject date references in-reply-to );
+
+    $self->body( $mail->body );
 
     $self->epoch_date(str2time $self->header('date'));
     $self->filename($self->_filename);
     $self->from($self->_from);
     return $self;
-}
-
-sub references {
-    my $self = shift;
-    @_ ? $self->header_set('references', @_) : $self->header('references');
-}
-
-sub in_reply_to {
-    my $self = shift;
-    @_ ? $self->header_set('in-reply-to', @_) : $self->header('in-reply-to');
 }
 
 sub _make_fake_id {
