@@ -10,7 +10,7 @@ use Storable qw( store retrieve );
 use base 'Class::Accessor::Fast';
 
 use vars '$VERSION';
-$VERSION = 0.1;
+$VERSION = 0.2;
 
 __PACKAGE__->mk_accessors( qw( input output messages rootset
                                threads_per_page list_title

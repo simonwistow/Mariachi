@@ -5,6 +5,7 @@ TODO
 lib/Mariachi.pm
 lib/Mariachi/Message.pm
 lib/Template/Plugin/Mariachi.pm
+inc/Siesta/Build.pm
 mariachi
 templates/date.tt2
 templates/header.tt2

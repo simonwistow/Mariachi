@@ -192,7 +192,6 @@ Strip html out of html mails?
 
 Defang javascript and display html in line?
 
-
 =head1 COPYING
 
 Copyright 2003, the Siesta Development Team

@@ -1,5 +1,5 @@
 use strict;
-use lib qw(../siesta/lib inc);
+use lib qw(inc);
 use Siesta::Build;
 
 my $build = Siesta::Build->new(
