@@ -1,11 +1,19 @@
 [% PROCESS header.tt2 title="Messages for " _ archive_date %]
 
+[%# set up pagination %]
+[% thispage = again || 1 ; nextpage = thispage + 1 %]
+[% USE page = Page(mails.size, perpage, thispage) %] 
+[% IF thispage == page.last_page ; set_again(0) ; ELSE ; set_again(nextpage) ; END %]
+[% set_file( nthpage( thispage ) ) %]
+
 <h1>messages for [% archive_date %]</h1>
+
+[% PROCESS pagenav.tt2 %]
 
 <p>
 [<a href="TODO">last</a>]
 [<a href="TODO">next</a>]
-[<a href="[% base %]/index.html">thread index</a>]
+[<a href="[% base %]index.html">thread index</a>]
 </p>
 
 [% FOR mail=mails %]
@@ -16,3 +24,5 @@
 <small>[% mail.from | html %] <i>[% date.format(mail.epoch_date) %]</i></small>
 </li></ul>
 [% END %]
+
+[% PROCESS pagenav.tt2 %]

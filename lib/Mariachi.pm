@@ -6,6 +6,8 @@ use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
 use Data::Dumper qw( Dumper );
 use Storable qw( store retrieve );
+use File::Path;
+use File::Basename;
 
 use base 'Class::Accessor::Fast';
 
@@ -386,7 +388,10 @@ sub generate_pages {
                      $self->output . "/$$.tmp" )
           or die $tt->error;
         print "$$.tmp -> $file\n";
-        rename $self->output . "/$$.tmp", $self->output . "/$file";
+        mkpath dirname $self->output . "/$file";
+        rename $self->output . "/$$.tmp", $self->output . "/$file"
+          or die "$!";
+
     } while $again;
 }
 
@@ -474,15 +479,13 @@ sub generate {
             $a->epoch_date <=> $b->epoch_date
         } @{ $dates{$_} };
 
-        # TODO paginate these too
         my @depth = split m!/!;
-        $tt->process('date.tt2',
-                     { archive_date => $_,
-                       mails        => \@mails,
-                       base         => "../" x @depth,
-                     },
-                     $self->output . "/$_/index.html" )
-          or die $tt->error;
+        $self->generate_pages( 'date.tt2', "$_/index.html",
+                               archive_date => $_,
+                               mails        => \@mails,
+                               base         => "../" x @depth,
+                               perpage      => 20,
+                              );
     }
     $self->_bench("date indexes");
 
