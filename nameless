@@ -2,25 +2,27 @@
 use strict;
 use Mail::Thread;
 use File::Find::Rule;
-use File::Basename;
-use Data::Dumper;
-
+use Date::Parse qw(str2time);
 use Template;
 
 my $maildir = shift || die "need an input maildir";
 my $output = shift || die "where do we put them?";
 
-
 my %names;
 my @mails = map {
+    $_->[0]
+}
+sort {
+    $a->[1] <=> $b->[1]
+}
+map {
     open my $fh, "<$_" or die "open: '$_' $!";
-    Message->new($fh);
+    my $message = Message->new($fh);
+    [ $message => str2time( $message->head->get('date') ) ];
 } find( file => in => $maildir );
 
 
 print scalar @mails, " mails\n";
-
-#die Dumper \@mails;
 
 my $threader = Mail::Thread->new( @mails );
 $threader->thread;
