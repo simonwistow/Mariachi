@@ -1,3 +1,7 @@
+0.41	Friday 27th June, 2003
+	Last release had a screwed up SIGNATURE file.  Since they keep biting
+	me we'll stop shipping them for a while.
+
 0.4	Thursday 26th June, 2003
 	Now we ship with a lurker-style output.
 
