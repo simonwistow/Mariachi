@@ -107,6 +107,7 @@ sub sig {
     my $self = shift;
     my (undef, $sig) = split /^-- $/m, $self->body, 2;
 
+    $sig =~ s/^\n//;
     return $sig;
 }
 
