@@ -12,7 +12,7 @@ use base 'Class::Accessor::Fast';
 use vars '$VERSION';
 $VERSION = 0.1;
 
-__PACKAGE__->mk_accessors( qw( input output messages threader
+__PACKAGE__->mk_accessors( qw( input output messages rootset
                                threads_per_page list_title
                                start_time last_time ) );
 
@@ -36,9 +36,9 @@ The output directory
 
 The current set of messages
 
-=head2 ->threader
+=head2 ->rootset
 
-An Email::Thread instance of the threaded C<messages>
+The rootset of threaded messages
 
 =head2 ->threads_per_page
 
@@ -171,7 +171,7 @@ sub sanitise {
 
 =head2 ->thread
 
-populate C<threader> with an Email::Thread object created from
+populate C<rootset> with an Email::Thread::Containers created from
 C<messages>
 
 =cut
@@ -179,40 +179,40 @@ C<messages>
 sub thread {
     my $self = shift;
 
-    #$Mail::Thread::nosubject = 1;
-    #$Mail::Thread::noprune = 1;
+    $Mail::Thread::nosubject = 1;
     my $threader = Email::Thread->new( @{ $self->messages } );
-    $self->threader($threader);
     $threader->thread;
+    $self->rootset( [ $threader->rootset ] );
 }
 
 =head2 ->order
 
-order C<threaders> containers by date
+order C<rootset> by date
 
 =cut
 
 sub order {
     my $self = shift;
 
+    my @rootset = @{ $self->rootset };
     $_->order_children( sub {
                             sort {
                                 $a->topmost->message->epoch_date <=>
                                 $b->topmost->message->epoch_date
                             } @_
-                        }) for $self->threader->rootset;
+                        }) for @rootset;
 
     # we actually want the root set to be ordered latest first
-    # this is naughty, breaking encapsulation like this
-    @{ $self->threader->{rootset} } = sort {
+    @rootset = sort {
         $b->topmost->message->epoch_date <=> $a->topmost->message->epoch_date
-    } $self->threader->rootset;
+    } @rootset;
+    $self->rootset( \@rootset );
 }
 
 =head2 ->sanity
 
 (in)sanity test - check everything in C<messages> is reachable when
-walking C<threader>
+walking C<rootset>
 
 =cut
 
@@ -222,18 +222,19 @@ sub sanity {
     my %mails = map { $_ => $_ } @{ $self->messages };
     my $count;
     my $check = sub {
-        my $mail = $_[0]->message or return;
+        my $cont = shift or return;
+        my $mail = $cont->message or return;
         ++$count;
         #print STDERR "\rverify $count";
         delete $mails{ $mail || '' };
     };
-    $_->iterate_down( $check ) for $self->threader->rootset;
+    $_->iterate_down( $check ) for @{ $self->rootset };
     undef $check;
     #print STDERR "\n";
 
     return unless %mails;
     print join "\n", map { $_->header("message-id") } values %mails;
-    warn "\nDidn't see ".(scalar keys %mails)." messages";
+    die "\nDidn't see ".(scalar keys %mails)." messages";
 }
 
 =head2 ->strand
@@ -247,7 +248,7 @@ sub strand {
     my $self = shift;
 
     my $prev;
-    for my $root ($self->threader->rootset) {
+    for my $root (@{ $self->rootset }) {
         my $sub = sub {
             my $mail = $_[0]->message or return;
             $prev->next($mail) if $prev;
@@ -263,7 +264,7 @@ sub strand {
 
 =head2 ->split_deep
 
-wander over C<threader> reparenting subthreads that are
+wander over C<rootset> reparenting subthreads that are
 considered too deep
 
 =cut
@@ -272,7 +273,7 @@ sub split_deep {
     my $self = shift;
 
     my @toodeep;
-    for my $root ($self->threader->rootset) {
+    for my $root (@{ $self->rootset }) {
         my $sub = sub {
             my ($cont, $depth) = @_;
 
@@ -321,7 +322,7 @@ sub generate {
         RECURSION => 1
        );
 
-    my @threads = $self->threader->rootset;
+    my @threads = @{ $self->rootset };
     my $pages = int(scalar(@threads) / $self->threads_per_page);
     my $page = 0;
     my %touched_threads;
@@ -394,7 +395,7 @@ sub generate {
     $self->_bench("date indexes");
 
     # figure out adjacent dirty threads
-    @threads = $self->threader->rootset;
+    @threads = @{ $self->rootset };
     for my $i (grep { $touched_threads{ $threads[$_] } } 0..$#threads) {
         $touched_threads{ $threads[$i-1] } = $threads[$i-1] if $i > 0;
         $touched_threads{ $threads[$i+1] } = $threads[$i+1] if $i+1 < @threads;
