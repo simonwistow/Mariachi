@@ -9,39 +9,20 @@ use Memoize;
 
 use base 'Mariachi::DBI';
 __PACKAGE__->set_up_later(
-    rawmail         => 'Email::Simple',
     map { $_ => '' } qw(
         hdr_message_id hdr_from hdr_subject hdr_date
         hdr_references hdr_in_reply_to
         body epoch_date day month year ),
    );
-__PACKAGE__->add_trigger( before_create => \&pre_create );
 
 #these are just sops
-__PACKAGE__->columns( TEMP => qw( prev next root ) );
+__PACKAGE__->columns( TEMP => qw( rawmail prev next root ) );
 
 # copy things out of the email::simple message and into the columns
 sub _blat {
     my $thing = shift;
     $thing =~ tr/-/_/;
     return lc $thing;
-}
-
-sub pre_create {
-    my $data = shift;
-
-    my $mail = $data->{rawmail};
-    $data->{ 'hdr_' . _blat( $_ ) } = $mail->header($_) for
-      qw( message-id from subject date references in-reply-to );
-
-    $data->{body}       = $mail->body;
-    $data->{epoch_date} = str2time( $data->{hdr_date} ) || 0;
-
-    my @date = localtime $data->{epoch_date};
-    my @ymd = ( $date[5] + 1900, $date[4] + 1, $date[3] );
-    $data->{day}   = sprintf "%04d/%02d/%02d", @ymd;
-    $data->{month} = sprintf "%04d/%02d", @ymd;
-    $data->{year}  = sprintf "%04d", @ymd;
 }
 
 =head1 NAME
@@ -60,12 +41,26 @@ your standard constructor
 
 sub new {
     my $class = shift;
-    my $mail  = Email::Simple->new(shift) or return;
 
+    my $mail  = Email::Simple->new(shift) or return;
     my $msgid = $mail->header('message-id') or die "gotta have a message-id";
     my ($old) = $class->search({ hdr_message_id => $msgid });
     return $old if $old;
-    return $class->create({ rawmail => $mail });
+
+    my $data = {};
+    $data->{ 'hdr_' . _blat( $_ ) } = $mail->header($_) for
+      qw( message-id from subject date references in-reply-to );
+
+    $data->{body}       = $mail->body;
+    $data->{epoch_date} = str2time( $data->{hdr_date} ) || 0;
+
+    my @date = localtime $data->{epoch_date};
+    my @ymd = ( $date[5] + 1900, $date[4] + 1, $date[3] );
+    $data->{day}   = sprintf "%04d/%02d/%02d", @ymd;
+    $data->{month} = sprintf "%04d/%02d", @ymd;
+    $data->{year}  = sprintf "%04d", @ymd;
+
+    return $class->create($data);
 }
 
 
