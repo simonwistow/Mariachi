@@ -7,11 +7,6 @@
 customise location, place value as default into a tiny generated 
 stub - probably from mariachi.PL
 
-=head1 Configuration
-
-commandline/inifile kinda thing.  I think this is probably what
-AppConfig is good for, and we're already using TT so it's worth a look
-
 =head1 Internals documentation
 
 as always.  needs to cover subclassing, since we kinda support it, but
