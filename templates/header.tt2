@@ -2,7 +2,10 @@
 [% USE Mariachi %]
 <html>
 <head>
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
 <title>[% title | html | mariachi %]</title>
+
+
 <style type="text/css"><!--
 [% INCLUDE css.tt2 %]  
 --></style>
