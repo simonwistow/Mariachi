@@ -47,7 +47,7 @@ sub new {
             $body .= $_->body;
         }
         else {
-            $body .= "[ detached attachment " . $_->filename . " ]\n";
+            $body .= "[ detached attachment " . ($_->filename || "") . " ]\n";
         }
     }
     $self->body( $body );
