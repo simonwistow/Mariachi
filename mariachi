@@ -145,6 +145,17 @@ $config->define("lurker", {
     ARGCOUNT => ARGCOUNT_NONE
 });
 
+=head2 --noarc
+
+Disable arc output
+
+=cut
+
+$config->define("arc", {
+    DEFAULT  => 1,
+    ARGCOUNT => ARGCOUNT_NONE
+});
+
 =head2 --thread-context I<context_style>
 
 Controls the amount of context to show with a message in thread view.

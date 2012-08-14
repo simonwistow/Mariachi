@@ -24,6 +24,7 @@ my $build = Siesta::Build->new(
         'File::Find::Rule' => 0,
         'File::Path'      => 0,
         'Mail::Thread'    => '2.2',
+        'Mail::Thread::Arc'           => '0.22',
         'Mail::Thread::Chronological' => '1.22',
         'Memoize'         => 0,
         'Module::Build'   => '0.18',

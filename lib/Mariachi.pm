@@ -415,6 +415,17 @@ sub generate_pages {
     } while $again;
 }
 
+sub write_file {
+    my $self    = shift;
+    
+    my $file    = shift;
+    my $content = shift;
+
+    mkpath dirname $self->config->output . "/$file";
+    open my $fh, ">", $self->config->output . "/$file" or die "Couldn't open file $file";
+    print $fh $content;
+    close $fh;
+}
 
 =head2 ->generate_lurker_index
 
@@ -434,6 +445,26 @@ sub generate_lurker {
         perpage    => 10,
        );
 }
+
+=head2 ->generate_mail_arc 
+
+=cut
+sub generate_arc {
+    my $self = shift;
+
+    return unless $self->config->arc;
+
+    my $a = Mariachi::Arc->new;
+    for my $thread (@{ $self->rootset }) {
+        next unless $thread->message;
+        my $svg  = $a->render( $thread );
+        my $file = "thread_".$thread->message->filename_id.".svg";
+        $self->write_file($file, $svg->xmlify );
+        $thread->iterate_down( sub { my $c = shift; $c->message->linked->{arc} = $file if $c->message } );
+    }
+    
+}
+
 
 
 =head2 ->generate_thread
@@ -578,6 +609,7 @@ sub perform {
     $self->copy_files;      $self->_bench("copy files");
     $self->init_tt;         $self->_bench("tt init");
     $self->generate_lurker; $self->_bench("lurker output");
+    $self->generate_arc;    $self->_bench("arc output");
     $self->strand;          $self->_bench("strand");
     $self->split_deep;      $self->_bench("deep threads split up");
     $self->sanity;          $self->_bench("sanity");
@@ -599,6 +631,13 @@ use Mail::Thread::Chronological;
 use base 'Mail::Thread::Chronological';
 
 sub extract_time { $_[1]->message->epoch_date }
+
+package Mariachi::Arc;
+use Mail::Thread::Arc;
+use base 'Mail::Thread::Arc';
+
+sub message_radius { 10 }
+sub make_link { $_[1]->message->filename }
 
 1;
 

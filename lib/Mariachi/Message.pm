@@ -191,13 +191,24 @@ the name of the output file
 sub filename {
     my $self = shift;
 
-    my $msgid = $self->header('message-id');
-
-    my $filename = substr( md5_hex( $msgid ), 0, 8 ).".html";
+    my $filename = $self->filename_id.".html";
     return $self->day."/".$filename;
 }
 memoize('filename');
 
+=head2 filename_id 
+
+an id to use for filenames 
+
+=cut
+
+sub filename_id {
+    my $self = shift;
+    
+    my $msgid = $self->header('message-id');
+    return substr( md5_hex( $msgid ), 0, 8 );
+}
+memoize('filename_id');
 1;
 
 __END__

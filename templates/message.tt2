@@ -9,6 +9,7 @@
 [<a href="[% base %][% message.next.filename %]">next</a>]
 
 [% IF message.linked.lurker %][<a href="[% base %][% message.linked.lurker %]#[% message.filename %]">lurker</a>][% END %]
+[% IF message.linked.arc %][<a href="[% base %][% message.linked.arc %]">mail arc</a>][% END %]
 
 [Date index for <a href="[% base %][% message.year %]">[% message.ymd.0 | format('%04d') %]</a>/<a href="[% base %][% message.month %]">[% message.ymd.1 | format('%02d') %]</a>/<a href="[% base %][% message.day %]">[% message.ymd.2 | format('%02d') %]</a>]
 </p>
