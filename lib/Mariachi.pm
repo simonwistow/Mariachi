@@ -91,16 +91,24 @@ sub load {
     if ($cache && -e $cache && !$self->config->refresh) {
         print "pulling in $cache\n";
         $self->messages( retrieve( $cache ) );
-        return;
+        return unless $self->config->add;
     }
 
     my $count = 0;
-    my @msgs;
-    while (my $msg = $folder->next_message) {
-        push @msgs, $msg;
-        print STDERR "\r$count messages" if ++$count % 100 == 0;
+    my @msgs  = @{$self->messages || []};
+    unless (@msgs) {
+        while (my $msg = $folder->next_message) {
+            push @msgs, $msg;
+            print STDERR "\r$count messages" if ++$count % 100 == 0;
+        }
+        print STDERR "\r$count messages";
     }
     print STDERR "\n";
+    
+    if ($self->config->add) {
+        print STDERR "Adding message to ".scalar(@msgs)." existing messages\n"; 
+        push @msgs, Mariachi::Message->new(join "", <>);     
+    } 
 
     if ($cache) {
         print "caching\n";

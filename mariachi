@@ -134,6 +134,17 @@ $config->define("reverse", {
    });
 
 
+=head2 --add
+
+Add a single message via stdin
+
+=cut
+
+$config->define("add", {
+   DEFAULT  => 0,
+   ARGCOUNT => ARGCOUNT_NONE
+});
+
 =head2 --nolurker
 
 Disable lurker output
