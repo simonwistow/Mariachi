@@ -156,6 +156,7 @@ $config->define("arc", {
     ARGCOUNT => ARGCOUNT_NONE
 });
 
+
 =head2 --thread-context I<context_style>
 
 Controls the amount of context to show with a message in thread view.
@@ -183,6 +184,30 @@ $config->define("lurker-context", {
     DEFAULT => '',
     VALIDATE => sub { $context_styles{ $_[1] } }
    });
+
+=head2 --threads-per-page I<number of threads>
+
+Controls the number of threads to display per page.
+
+Default value is I<20>
+
+=cut
+$config->define( "threads-per-page", {
+    DEFAULT  => 20,
+    ARGCOUNT => ARGCOUNT_ONE,
+} );
+
+=head2 --lurker-threads-per-page I<number of threads>
+
+Controls the number of lurker-threads to display per page.
+
+Default value is same as I<threads-per-page>.
+
+=cut
+$config->define( "lurker-threads-per-page", {
+    DEFAULT  => 0,
+    ARGCOUNT => ARGCOUNT_ONE,
+} );
 
 =head2 --class I<class>
 
@@ -226,10 +251,7 @@ unless (defined $config->name) {
     $config->name("no list name");
 }
 
-$config->class->new( config  => $config,
-                     threads_per_page => 20,
-                    )
-  ->perform;
+$config->class->new( config  => $config )->perform;
 
 
 __END__

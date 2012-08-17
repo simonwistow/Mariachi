@@ -11,7 +11,7 @@ use File::Basename;
 use base qw( Class::Accessor::Fast );
 our $VERSION = '0.52';
 
-__PACKAGE__->mk_accessors( qw( config messages rootset
+__PACKAGE__->mk_accessors( qw( config messages rootset 
                                start_time last_time tt ) );
 
 =head1 NAME
@@ -442,7 +442,7 @@ sub generate_lurker {
         content => [
             map { [ $l->arrange( $_ ) ] } @{ $self->rootset }
            ],
-        perpage    => 10,
+        perpage    => $self->config->get('lurker-threads-per-page') || $self->config->get('threads-per-page'),
        );
 }
 
@@ -477,7 +477,7 @@ sub generate_thread {
     $self->generate_pages(
         'index.tt2', 'index.html',
         content => $self->rootset,
-        perpage => 20,
+        perpage => $self->config->get('threads-per-page'),
     );
 }
 
