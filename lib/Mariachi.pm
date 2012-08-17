@@ -1,5 +1,6 @@
 use strict;
 package Mariachi;
+use Email::Address;
 use Email::Thread;
 use Template;
 use Time::HiRes qw( gettimeofday tv_interval );
@@ -107,6 +108,32 @@ sub load {
     }
 
     $self->messages( \@msgs );
+}
+
+=head2 ->check_name
+
+Find the list name either as it's passed in or from List-Id
+
+=cut
+sub check_name {
+    my $self   = shift;
+    my $config = $self->config;
+    return if defined $config->name;
+    
+    for my $mail (@{ $self->messages }) {
+        my $list_id = $mail->header('list-id') || next;
+        # FIXME This should really be got from a rfc2919 compliant parser
+        my ($name)  = ($list_id =~ m!^\s*(.+)\s*<!);
+        next unless $name;
+        $config->name($name);
+        last;
+    }
+    
+    unless (defined $config->name) {
+        warn "Should pass a list name\n";
+        $config->name("no list name");
+    }
+    
 }
 
 =head2 ->dedupe
@@ -600,6 +627,7 @@ sub perform {
 
     $self->_bench("reticulating splines");
     $self->load;            $self->_bench("load ".scalar @{ $self->messages });
+    $self->check_name;      $self->_bench("checking for list name");
     $self->dedupe;          $self->_bench("dedupe");
     #$self->sanitise;        $self->_bench("sanitise");
     $self->thread;          $self->_bench("thread");

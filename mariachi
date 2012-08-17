@@ -246,10 +246,6 @@ die "need an input maildir"
 die "where do we put them?"
   unless defined $config->output;
 
-unless (defined $config->name) {
-    warn "Should pass a list name\n";
-    $config->name("no list name");
-}
 
 $config->class->new( config  => $config )->perform;
 

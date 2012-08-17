@@ -35,7 +35,7 @@ sub new {
     $self->linked({});
     $self->_header({});
     $self->header_set( $_, $mail->header($_) ) for
-      qw( message-id from subject date references in-reply-to );
+      qw( message-id from subject date references in-reply-to list-id);
 
     # gather up the text/plain chunks for now - later we may want to
     # save the non-html attachments and present them in some way
